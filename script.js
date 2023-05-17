@@ -12,6 +12,12 @@ startRecognitionButton.addEventListener('click', () => {
       .map(result => result[0])
       .map(result => result.transcript)
       .join('');
+    
+    // Check if an API key has been provided
+    if (!apiKeyInput.value) {
+      conversationDisplay.innerHTML += '<p>Please enter an API key</p>';
+      return;
+    }
 
     // Call the GPT chatbot API to generate response from the command
     fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
