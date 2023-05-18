@@ -4,6 +4,7 @@ const startRecognitionButton = document.getElementById('start-recognition-button
 const enterPromoteButton = document.getElementById('enter-promot-button');
 const promptInput = document.getElementById('prompt-input');
 const conversationDisplay = document.getElementById('conversation-display');
+const voiceAnswer = document.getElementById('voice');
 var voice = false;
 function chart(transcript) {
 //display a waitting message
@@ -44,7 +45,7 @@ function chart(transcript) {
 }
 
 function tts(answer) {
-  if(voice){
+  if(voice || voiceAnswer.checked){
   const synth = window.speechSynthesis;
   const utterance = new SpeechSynthesisUtterance(answer);
   synth.speak(utterance);
