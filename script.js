@@ -8,9 +8,9 @@ const voiceAnswer = document.getElementById('voice');
 var voice = false;
 function chart(transcript) {
 //display a waitting message
-  conversationDisplay.innerHTML += `<p>You: ${transcript}</p><p>Chatbot: waitting...</p>`;
+  conversationDisplay.innerHTML = `<p>You: ${transcript}</p><p>Chatbot: waitting...</p>` + conversationDisplay.innerHTML;
   if (!apiKeyInput.value) {
-    conversationDisplay.innerHTML += '<p>Please enter an API key</p>';
+    conversationDisplay.innerHTML = '<p>Please enter an API key</p>' + conversationDisplay.innerHTML;
     return;
   }
  
