@@ -1,14 +1,29 @@
 const apiKeyInput = document.getElementById('api-key-input');
-const apiModifyButton = document.getElementById('modify-api-button');
+const settingButton = document.getElementById('setting-button');
 const startRecognitionButton = document.getElementById('start-recognition-button');
 const enterPromoteButton = document.getElementById('enter-promot-button');
 const promptInput = document.getElementById('prompt-input');
 const conversationDisplay = document.getElementById('conversation-display');
 const voiceAnswer = document.getElementById('voice');
+const pitch = document.querySelector("#pitch");
+const pitchValue = document.querySelector(".pitch-value");
+const rate = document.querySelector("#rate");
+const rateValue = document.querySelector(".rate-value");
+const settingDiv = document.getElementById('setting-div');
+const clearButton = document.getElementById('clear-conversation-button');
 var voice = false;
+
+  //get the current time
+  function getTimestamp() {
+    const date = new Date();
+    //return YYYY-MM-DD HH:MM:SS
+    return `[${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] `;
+  }
+
+// Get the input value display and save it to a cookie
 function chart(transcript) {
 //display a waitting message
-  conversationDisplay.innerHTML = `<p>You: ${transcript}</p><p>Chatbot: waitting...</p>` + conversationDisplay.innerHTML;
+  conversationDisplay.innerHTML =`<p class = "timeStemp"> ${getTimestamp()}</p> <p class = "userText"> ${transcript}: You</p><p class = "botText">Chatbot: waitting...</p>` + conversationDisplay.innerHTML;
   if (!apiKeyInput.value) {
     conversationDisplay.innerHTML = '<p>Please enter an API key</p>' + conversationDisplay.innerHTML;
     return;
@@ -26,6 +41,8 @@ function chart(transcript) {
     "temperature": 0.7
   };
 
+
+//send the request to the api
   fetch(apiUrl, {
     method: "POST",
     headers: headers,
@@ -35,10 +52,11 @@ function chart(transcript) {
     // .then(data => console.log(data))
     .then(data => {
      const answer = data.choices[0].message.content;
-      apiKeyInput.style.display = "none";
-      apiModifyButton.style.display = "block";
+      settingDiv.style.display = "none";
+      settingButton.style.display = "block";
       //replace the waitting message with the answer
       conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace("waitting...", answer);
+      document.cookie = `conversation=${conversationDisplay.innerHTML}`;
       tts(answer);
     }).catch(error => console.error(error));
   //return "I don't know what you are talking about";
@@ -48,16 +66,32 @@ function tts(answer) {
   if(voice || voiceAnswer.checked){
   const synth = window.speechSynthesis;
   const utterance = new SpeechSynthesisUtterance(answer);
+  utterance.pitch = pitch.value;
+  utterance.rate = rate.value;
   synth.speak(utterance);
 }
 }
+//change the voice's pitch and rate
+pitch.onchange = () => {
+  pitchValue.textContent = pitch.value;
+  document.cookie = `pitch=${pitch.value}`;
+};
 
-
-
+rate.onchange = () => {
+  rateValue.textContent = rate.value;
+  document.cookie = `rate=${rate.value}`;
+};
+//left click the clearButton to clear the conversation
+clearButton.addEventListener('click', () => {
+  conversationDisplay.innerHTML = "";
+  document.cookie = `conversation=`;
+});
 //left click the apiModifyButton to modify the api key
-apiModifyButton.addEventListener('click', () => {
-  apiKeyInput.style.display = "block";
-  apiModifyButton.style.display = "none";
+settingButton.addEventListener('click', () => {
+  if (settingDiv.style.display == "none")
+    settingDiv.style.display = "block";
+  else
+    settingDiv.style.display = "none";
 });
 
 //left click the enterPromoteButton to promote the chatbot
@@ -89,7 +123,7 @@ startRecognitionButton.addEventListener('click', () => {
   // Requesting user permission for speech recognition
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
-  if (this.value != "Start Recognition") {
+  if (this.value != "Start Talk") {
     voice = true;
     recognition.addEventListener('result', e => {
       const transcript = Array.from(e.results)
@@ -101,11 +135,11 @@ startRecognitionButton.addEventListener('click', () => {
       chart(transcript);
     });
     recognition.start();
-    this.value = "Stop Recognition";
+    this.value = "Stop Talk";
     //this.style.backgroundColor = "#ff0000";
   } else {
     recognition.stop();
-    this.value = "Start Recognition";
+    this.value = "Start Talk";
    // this.style.backgroundColor = "#00ff00";
   }
   // Get the input value and save it to a cookie
@@ -118,12 +152,14 @@ window.addEventListener('load', () => {
   const cookieValue = document.cookie.replace(/(?:(?:^|.*;\s*)api_key\s*\=\s*([^;]*).*$)|^.*$/, "$1");
   if (cookieValue) {
     apiKeyInput.value = cookieValue;
-    apiKeyInput.style.display = "none";
-    apiModifyButton.style.display = "block";
+    settingDiv.style.display = "none";
+    pitchValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)pitch\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    pitch.value = pitchValue.textContent;
+    rateValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)rate\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    rate.value = rateValue.textContent;
+    conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
   } else {
-    apiKeyInput.value = "";
-    apiKeyInput.style.display = "block";
-    apiModifyButton.style.display = "none";
+    settingDiv.style.display = "block";
   }
   //get browser's theme color and change the webpage's theme color
   setColorMode(window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
