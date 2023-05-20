@@ -91,7 +91,7 @@ clearButton.addEventListener('click', () => {
 saveButton.addEventListener('click', () => {
 
    const link = document.createElement("a");
-   const file = new Blob([conversationDisplay.innerHTML], { type: 'text/plain' });
+   const file = new Blob([conversationDisplay.innerHTML.replace(/<[^>]+>/g, '')], { type: 'text/plain' });
    link.href = URL.createObjectURL(file);
    link.download = "chatBox_"+getTimestamp()+".txt";
    link.click();
