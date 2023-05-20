@@ -200,3 +200,7 @@ function setColorMode(colorScheme) {
     promptInput.style.color = "#000000";
   }
 }
+
+function showPassword() {
+    apiKeyInput.type = apiKeyInput.type === "password"? "text":"password";
+ }
