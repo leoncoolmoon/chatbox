@@ -23,13 +23,13 @@ var voice = false;
 
 // Get the input value display and save it to a cookie
 function chart(transcript) {
-//display a waitting message
-  conversationDisplay.innerHTML =`<p class = "timeStemp"> ${getTimestamp()}</p> <p class = "userText"> ${transcript}: You</p><p class = "botText">Chatbot: waitting...</p>` + conversationDisplay.innerHTML;
+  //check if the api key is empty
   if (!apiKeyInput.value) {
     conversationDisplay.innerHTML = '<p>Please enter an API key</p>' + conversationDisplay.innerHTML;
     return;
   }
- 
+  //display a waitting message
+  conversationDisplay.innerHTML =`<p class = "timeStemp"> ${getTimestamp()}</p> <p class = "userText"> ${transcript}: You</p><p class = "botText">Chatbot: waitting...</p>` + conversationDisplay.innerHTML;
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const headers = {
     "Content-Type": "application/json",
@@ -90,7 +90,7 @@ clearButton.addEventListener('click', () => {
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
    const link = document.createElement("a");
-   const file = new Blob([conversationDisplay.innerHTML.replace(/<[^>]+>/g, '')], { type: 'text/plain' });
+   const file = new Blob([conversationDisplay.innerHTML.replace('</p>',"\r\n").replace(/<[^>]+>/g, '')], { type: 'text/plain' });
    link.href = URL.createObjectURL(file);
    link.download = "chatBox_"+getTimestamp()+".txt";
    link.click();
