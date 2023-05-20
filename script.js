@@ -92,6 +92,7 @@ settingButton.addEventListener('click', () => {
     settingDiv.style.display = "block";
   else
     settingDiv.style.display = "none";
+    document.cookie = `api_key=${apiKeyInput.value}`;
 });
 
 //left click the enterPromoteButton to promote the chatbot
