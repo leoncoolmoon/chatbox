@@ -11,6 +11,7 @@ const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
 const settingDiv = document.getElementById('setting-div');
 const clearButton = document.getElementById('clear-conversation-button');
+const saveButton = document.getElementById('save-conversation-button');
 var voice = false;
 
   //get the current time
@@ -85,6 +86,15 @@ rate.onchange = () => {
 clearButton.addEventListener('click', () => {
   conversationDisplay.innerHTML = "";
   document.cookie = `conversation=`;
+});
+//left click the saveButton to save the conversation
+saveButton.addEventListener('click', () => {
+
+         var blob = new Blob([conversationDisplay.innerHTML], {
+            type: "text/plain;charset=utf-8",
+         });
+         saveAs(blob, "chatBox_"+getTimestamp()+".txt");
+      
 });
 //left click the apiModifyButton to modify the api key
 settingButton.addEventListener('click', () => {
