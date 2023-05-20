@@ -20,7 +20,13 @@ input[type="text"] {
   margin-right: 8px;
   width: -webkit-fill-available;
 }
-
+input[type="password"] {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-right: 8px;
+  width: -webkit-fill-available;
+}
 button {
   padding: 8px 16px;
   border-radius: 4px;

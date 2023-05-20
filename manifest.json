@@ -13,8 +13,10 @@
       "type": "image/png"
     }
   ],
-  "start_url": "/",
+  "lang": "en-US",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4caf50"
+  "theme_color": "#4caf50",
+  "description": "Chat With chatGPT"
 }

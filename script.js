@@ -11,6 +11,7 @@ const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
 const settingDiv = document.getElementById('setting-div');
 const clearButton = document.getElementById('clear-conversation-button');
+const saveButton = document.getElementById('save-conversation-button');
 var voice = false;
 
   //get the current time
@@ -86,12 +87,23 @@ clearButton.addEventListener('click', () => {
   conversationDisplay.innerHTML = "";
   document.cookie = `conversation=`;
 });
+//left click the saveButton to save the conversation
+saveButton.addEventListener('click', () => {
+
+   const link = document.createElement("a");
+   const file = new Blob([conversationDisplay.innerHTML.replace(/<[^>]+>/g, '')], { type: 'text/plain' });
+   link.href = URL.createObjectURL(file);
+   link.download = "chatBox_"+getTimestamp()+".txt";
+   link.click();
+   URL.revokeObjectURL(link.href);
+});
 //left click the apiModifyButton to modify the api key
 settingButton.addEventListener('click', () => {
   if (settingDiv.style.display == "none")
     settingDiv.style.display = "block";
   else
     settingDiv.style.display = "none";
+    document.cookie = `api_key=${apiKeyInput.value}`;
 });
 
 //left click the enterPromoteButton to promote the chatbot
@@ -199,3 +211,7 @@ function setColorMode(colorScheme) {
     promptInput.style.color = "#000000";
   }
 }
+
+function showPassword() {
+    apiKeyInput.type = apiKeyInput.type === "password"? "text":"password";
+ }

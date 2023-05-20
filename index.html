@@ -6,12 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Chatbot PWA</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 </head>
 <body>
   <h2>Chatbot PWA</h2>
+  <a href="https://github.com/leoncoolmoon/chatbox/tree/main">github</a>
 </br>
   <div>
     <button id="start-recognition-button">Start Talk</button></br>
@@ -25,11 +26,13 @@
   </div>
   <div>
     <button id="clear-conversation-button">Clear Conversation</button>
+    <button id = "save-conversation-button">Save Conversation</button><br>
     <button id="setting-button">Setting</button>
     <div id="setting-div">
       <div>
         <label for="api-key-input">Enter API key   ChatGPT:</label>
-        <input id="api-key-input" type="text" />
+        <input id="api-key-input" autocomplete="api-key-input" type="password" />
+        <input type="checkbox" onclick="showPassword()">Show Password
       </div>
       <div>
         <label>Speech setting:</label><br>
