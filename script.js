@@ -90,11 +90,12 @@ clearButton.addEventListener('click', () => {
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
 
-         var blob = new Blob([conversationDisplay.innerHTML], {
-            type: "text/plain;charset=utf-8",
-         });
-         saveAs(blob, "chatBox_"+getTimestamp()+".txt");
-      
+   const link = document.createElement("a");
+   const file = new Blob([conversationDisplay.innerHTML], { type: 'text/plain' });
+   link.href = URL.createObjectURL(file);
+   link.download = "chatBox_"+getTimestamp()+".txt";
+   link.click();
+   URL.revokeObjectURL(link.href);
 });
 //left click the apiModifyButton to modify the api key
 settingButton.addEventListener('click', () => {
