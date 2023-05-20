@@ -89,7 +89,6 @@ clearButton.addEventListener('click', () => {
 });
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
-
    const link = document.createElement("a");
    const file = new Blob([conversationDisplay.innerHTML.replace(/<[^>]+>/g, '')], { type: 'text/plain' });
    link.href = URL.createObjectURL(file);
@@ -177,7 +176,7 @@ window.addEventListener('load', () => {
   setColorMode(window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('service-worker.js')
       .then(registration => {
         console.log('Service worker registered successfully:', registration.scope);
       })
