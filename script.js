@@ -57,6 +57,7 @@ function chart(transcript) {
       settingButton.style.display = "block";
       //replace the waitting message with the answer
       conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace("waitting...", answer);
+      conversationDisplay.scrollTo(0, 0);
       document.cookie = `conversation=${conversationDisplay.innerHTML}`;
       tts(answer);
     }).catch(error => console.error(error));
