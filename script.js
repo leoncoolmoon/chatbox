@@ -192,6 +192,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', eve
   setColorMode(newColorScheme);
 });
 function setColorMode(colorScheme) {
+  //if (false) {
   if (colorScheme === "dark") {
     // set page color theme in dark mode
     document.body.style.backgroundColor = "#000000";

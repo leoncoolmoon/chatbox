@@ -34,6 +34,7 @@ button {
   background-color: #4caf50;
   color: white;
   cursor: pointer;
+  margin: 0.5em;
 }
 
 button:hover {
@@ -52,3 +53,15 @@ button:hover {
 #conversation-display p {
   margin: 8px 0;
 }
+a:link{
+  text-decoration: none;
+  color: #4caf50;
+}
+a:visited{
+  text-decoration: none;
+  color: #71a80a;
+}
+a:hover{
+  text-decoration: none;
+  color: rgb(0, 255, 149);
+} 
