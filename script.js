@@ -12,6 +12,7 @@ const rateValue = document.querySelector(".rate-value");
 const settingDiv = document.getElementById('setting-div');
 const clearButton = document.getElementById('clear-conversation-button');
 const saveButton = document.getElementById('save-conversation-button');
+const languageSelect = document.getElementById('language-select');
 var voice = false;
 var you = "You";
 var bot = "Chatbot";
@@ -92,6 +93,11 @@ function tts(answer) {
     synth.speak(utterance);
   }
 }
+//change language
+languageSelect.onchange = () => {
+  loadLanguage(languageSelect.value); //load the chinese language
+}
+
 //change the voice's pitch and rate
 pitch.onchange = () => {
   pitchValue.textContent = pitch.value;
@@ -124,7 +130,11 @@ settingButton.addEventListener('click', () => {
     settingDiv.style.display = "none";
   document.cookie = `api_key=${apiKeyInput.value}`;
 });
-
+//right click the settingButton to display/hide the languageSelect
+settingButton.addEventListener('contextmenu', () => {
+  languageSelect.style.display = languageSelect.style.display == "none" ? "block" : "none";
+  return false;
+});
 //left click the enterPromoteButton to promote the chatbot
 enterPromoteButton.addEventListener('click', () => {
   voice = false;
@@ -216,8 +226,8 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', eve
 });
 
 //detect browser's language change
-window.onlanguagechange = function() {
-  loadLanguage();
+window.onlanguagechange = function () {
+  selectLanguage();
 };
 
 //change the webpage's theme color
@@ -245,9 +255,12 @@ function setColorMode(colorScheme) {
 function showAPIKEY() {
   apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
 }
-//load language from json file
-function loadLanguage() {
+function selectLanguage() {
   var lang = navigator.language || navigator.userLanguage;
+  languageSelect.setAttribute("value", lang);
+}
+//load language from json file
+function loadLanguage(lang) {
   var file = lang === "zh-CN" ? "cn.json" : "en.json";
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function () {
