@@ -1,7 +1,7 @@
 const CACHE_NAME = 'chatbot-pwa-cache-v1';
 const urlsToCache = [
   '/',
-  '/index.html'
+  '/index.html',
   '/manifest.json',
   '/favicon-192x192.png',
   '/favicon-512x512.png',
