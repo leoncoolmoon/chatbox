@@ -17,6 +17,7 @@ var voice = false;
 var you = "You";
 var bot = "Chatbot";
 var waiting = "waiting...";
+var enterApiKey = "Please enter an API key";
 var startTalk = "Start Talk";
 var stopTalk = "Stop Talk";
 
@@ -37,7 +38,7 @@ function hide() {
 function chart(transcript) {
   //check if the api key is empty
   if (!apiKeyInput.value) {
-    conversationDisplay.innerHTML = '<p>Please enter an API key</p>' + conversationDisplay.innerHTML;
+    conversationDisplay.innerHTML = `<p>${enterApiKey}</p>` + conversationDisplay.innerHTML;
     settingDiv.style.display = "block";
     apiKeyInput.scrollIntoView();
     var blinkDelay = 900;
@@ -291,6 +292,7 @@ function loadLanguage(lang) {
       you = data.text1;
       bot = data.text2;
       waiting = data.text3;
+      enterApiKey = data.text4;
     }
   };
   xhr.open("GET", file, true);
