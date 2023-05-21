@@ -265,7 +265,7 @@ function loadLanguage() {
       settingButton.textContent = data.button5;
 
       promptInput.setAttribute("placeholder", data.label1);
-      ocument.getElementsByName('inputLabel').innerHTML = data.label1;
+      document.getElementsByName('inputLabel').innerHTML = data.label1;
       voiceAnswer.innerHTML = data.label2;
       voiceAnswer.setAttribute("placeholder", data.label2);
       apiKeyInput.setAttribute("placeholder", data.label3);
