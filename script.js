@@ -266,8 +266,8 @@ function loadLanguage(lang) {
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
       var data = JSON.parse(xhr.responseText);
-      document.getElementsByName("title").innerHTML = data.title;
-      document.getElementsByName("titleHead").innerHTML = data.title;
+      document.title =  data.title;
+      document.getElementsByName("titleHead").textContent = data.title;
 
       startRecognitionButton.textContent = data.button1;
       startTalk = data.button1;
@@ -278,15 +278,15 @@ function loadLanguage(lang) {
       settingButton.textContent = data.button5;
 
       promptInput.setAttribute("placeholder", data.label1);
-      document.getElementsByName("inputLabel").innerHTML = data.label1;
+      document.getElementsByName("inputLabel").textContent = data.label1;
       voiceAnswer.innerHTML = data.label2;
       voiceAnswer.setAttribute("placeholder", data.label2);
       apiKeyInput.setAttribute("placeholder", data.label3);
-      document.getElementsByName("showKey")[0].innerHTML = data.label4;
-      document.getElementsByName("showKey")[0].setAttribute("placeholder", data.label4);
-      document.getElementsByName("speechSetting").innerHTML = data.lable5;
-      document.getElementsByName("rateLabel").innerHTML = data.lable6;
-      document.getElementsByName("pitchLabel").innerHTML = data.lable7;
+      document.getElementsById("showKey").innerHTML = data.label4;
+      document.getElementsById("showKey").setAttribute("placeholder", data.label4);
+      document.getElementsByName("speechSetting").textContent = data.lable5;
+      document.getElementsByName("rateLabel").textContent = data.lable6;
+      document.getElementsByName("pitchLabel").textContent = data.lable7;
       you = data.text1;
       bot = data.text2;
       waiting = data.text3;
