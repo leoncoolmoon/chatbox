@@ -280,7 +280,7 @@ function loadLanguage(lang) {
 
       promptInput.setAttribute("placeholder", data.label1);
       document.getElementById("inputLabel").innerHTML = data.label1;
-    document.getElementById("voicdLabel").innerHTML = data.label2;
+    document.getElementById("voiceLabel").innerHTML = data.label2;
       voiceAnswer.setAttribute("placeholder", data.label2);
       apiKeyInput.setAttribute("placeholder", data.label3);
       document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
