@@ -282,8 +282,8 @@ function loadLanguage(lang) {
       voiceAnswer.innerHTML = data.label2;
       voiceAnswer.setAttribute("placeholder", data.label2);
       apiKeyInput.setAttribute("placeholder", data.label3);
-      document.getElementsById("showKey").innerHTML = data.label4;
-      document.getElementsById("showKey").setAttribute("placeholder", data.label4);
+      document.getElementById("showKey").innerHTML = data.label4;
+      document.getElementById("showKey").setAttribute("placeholder", data.label4);
       document.getElementsByName("speechSetting").textContent = data.lable5;
       document.getElementsByName("rateLabel").textContent = data.lable6;
       document.getElementsByName("pitchLabel").textContent = data.lable7;
