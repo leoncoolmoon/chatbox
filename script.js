@@ -282,7 +282,7 @@ function loadLanguage(lang) {
       voiceAnswer.innerHTML = data.label2;
       voiceAnswer.setAttribute("placeholder", data.label2);
       apiKeyInput.setAttribute("placeholder", data.label3);
-      dovument.getElementById("apiKeyInputLabel").innerHTML = data.label3;
+      document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
       document.getElementById("showKey").innerHTML = data.label4;
       document.getElementById("showKey").setAttribute("placeholder", data.label4);
       document.getElementById("speechSettingLabel").innerHTML = data.lable5;
