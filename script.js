@@ -286,9 +286,9 @@ function loadLanguage(lang) {
       document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
       document.getElementById("showKey").innerHTML = data.label4;
       document.getElementById("showKey").setAttribute("placeholder", data.label4);
-      document.getElementById("speechSettingLabel").innerHTML = data.lable5;
-      document.getElementById("rateLabel").innerHTML = data.lable6;
-      document.getElementById("pitchLabel").innerHTML = data.lable7;
+      document.getElementById("speechSettingLabel").innerHTML = data.label5;
+      document.getElementById("rateLabel").innerHTML = data.label6;
+      document.getElementById("pitchLabel").innerHTML = data.label7;
       you = data.text1;
       bot = data.text2;
       waiting = data.text3;
