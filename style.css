@@ -65,3 +65,9 @@ a:hover{
   text-decoration: none;
   color: rgb(0, 255, 149);
 } 
+#setting-div{
+  display: block;
+  outline: gray solid 1px;
+  border-radius: 4px;
+  padding: 0.5em;
+}

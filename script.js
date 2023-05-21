@@ -13,23 +13,42 @@ const settingDiv = document.getElementById('setting-div');
 const clearButton = document.getElementById('clear-conversation-button');
 const saveButton = document.getElementById('save-conversation-button');
 var voice = false;
+var you = "You";
+var bot = "Chatbot";
+var waiting = "waiting...";
+var startTalk = "Start Talk";
+var stopTalk = "Stop Talk";
 
-  //get the current time
-  function getTimestamp() {
-    const date = new Date();
-    //return YYYY-MM-DD HH:MM:SS
-    return `[${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] `;
-  }
-
+//get the current time
+function getTimestamp() {
+  const date = new Date();
+  //return YYYY-MM-DD HH:MM:SS
+  return `[${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] `;
+}
+function show() {
+  apiKeyInput.style.visibility = "visible";
+}
+// blink "off" state
+function hide() {
+  apiKeyInput.style.visibility = "hidden";
+}
 // Get the input value display and save it to a cookie
 function chart(transcript) {
   //check if the api key is empty
   if (!apiKeyInput.value) {
     conversationDisplay.innerHTML = '<p>Please enter an API key</p>' + conversationDisplay.innerHTML;
+    settingDiv.style.display = "block";
+    apiKeyInput.scrollIntoView();
+    var blinkDelay = 900;
+    var blinkTimes = 3;
+    for (var i = blinkDelay; i < blinkDelay * (blinkTimes + 1); i = i + blinkDelay) {
+      setTimeout("hide()", i);
+      setTimeout("show()", i + blinkDelay / 2);
+    }
     return;
   }
-  //display a waitting message
-  conversationDisplay.innerHTML =`<p class = "timeStemp"> ${getTimestamp()}</p> <p class = "userText"> ${transcript}: You</p><p class = "botText">Chatbot: waitting...</p>` + conversationDisplay.innerHTML;
+  //display a waiting message
+  conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <p class = "userText"> ${transcript}: ${you}</p><p class = "botText">${bot}: ${waiting}</p>` + conversationDisplay.innerHTML;
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const headers = {
     "Content-Type": "application/json",
@@ -43,7 +62,7 @@ function chart(transcript) {
   };
 
 
-//send the request to the api
+  //send the request to the api
   fetch(apiUrl, {
     method: "POST",
     headers: headers,
@@ -52,11 +71,11 @@ function chart(transcript) {
     .then(response => response.json())
     // .then(data => console.log(data))
     .then(data => {
-     const answer = data.choices[0].message.content;
+      const answer = data.choices[0].message.content;
       settingDiv.style.display = "none";
       settingButton.style.display = "block";
-      //replace the waitting message with the answer
-      conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace("waitting...", answer);
+      //replace the waiting message with the answer
+      conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, answer);
       conversationDisplay.scrollTo(0, 0);
       document.cookie = `conversation=${conversationDisplay.innerHTML}`;
       tts(answer);
@@ -65,13 +84,13 @@ function chart(transcript) {
 }
 
 function tts(answer) {
-  if(voice || voiceAnswer.checked){
-  const synth = window.speechSynthesis;
-  const utterance = new SpeechSynthesisUtterance(answer);
-  utterance.pitch = pitch.value;
-  utterance.rate = rate.value;
-  synth.speak(utterance);
-}
+  if (voice || voiceAnswer.checked) {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(answer);
+    utterance.pitch = pitch.value;
+    utterance.rate = rate.value;
+    synth.speak(utterance);
+  }
 }
 //change the voice's pitch and rate
 pitch.onchange = () => {
@@ -90,12 +109,12 @@ clearButton.addEventListener('click', () => {
 });
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
-   const link = document.createElement("a");
-   const file = new Blob([conversationDisplay.innerHTML.replace('</p>',"\r\n").replace(/<[^>]+>/g, '')], { type: 'text/plain' });
-   link.href = URL.createObjectURL(file);
-   link.download = "chatBox_"+getTimestamp()+".txt";
-   link.click();
-   URL.revokeObjectURL(link.href);
+  const link = document.createElement("a");
+  const file = new Blob([conversationDisplay.innerHTML.replace('</p>', "\r\n").replace(/<[^>]+>/g, '')], { type: 'text/plain' });
+  link.href = URL.createObjectURL(file);
+  link.download = "chatBox_" + getTimestamp() + ".txt";
+  link.click();
+  URL.revokeObjectURL(link.href);
 });
 //left click the apiModifyButton to modify the api key
 settingButton.addEventListener('click', () => {
@@ -103,7 +122,7 @@ settingButton.addEventListener('click', () => {
     settingDiv.style.display = "block";
   else
     settingDiv.style.display = "none";
-    document.cookie = `api_key=${apiKeyInput.value}`;
+  document.cookie = `api_key=${apiKeyInput.value}`;
 });
 
 //left click the enterPromoteButton to promote the chatbot
@@ -135,7 +154,7 @@ startRecognitionButton.addEventListener('click', () => {
   // Requesting user permission for speech recognition
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
-  if (this.value != "Start Talk") {
+  if (this.value != startTalk) {
     voice = true;
     recognition.addEventListener('result', e => {
       const transcript = Array.from(e.results)
@@ -147,12 +166,12 @@ startRecognitionButton.addEventListener('click', () => {
       chart(transcript);
     });
     recognition.start();
-    this.value = "Stop Talk";
+    this.value = stopTalk;
     //this.style.backgroundColor = "#ff0000";
   } else {
     recognition.stop();
-    this.value = "Start Talk";
-   // this.style.backgroundColor = "#00ff00";
+    this.value = startTalk;
+    // this.style.backgroundColor = "#00ff00";
   }
   // Get the input value and save it to a cookie
   document.cookie = `api_key=${apiKeyInput.value}`;
@@ -161,6 +180,7 @@ startRecognitionButton.addEventListener('click', () => {
 // Registering the service worker
 
 window.addEventListener('load', () => {
+  //load cookies
   const cookieValue = document.cookie.replace(/(?:(?:^|.*;\s*)api_key\s*\=\s*([^;]*).*$)|^.*$/, "$1");
   if (cookieValue) {
     apiKeyInput.value = cookieValue;
@@ -175,7 +195,9 @@ window.addEventListener('load', () => {
   }
   //get browser's theme color and change the webpage's theme color
   setColorMode(window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
-
+  //load language
+  loadLanguage();
+  // check if the browser supports service worker, then register it
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(registration => {
@@ -187,11 +209,18 @@ window.addEventListener('load', () => {
 
   }
 });
-
+//detect browser's theme color change
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
   const newColorScheme = event.matches ? "dark" : "light";
   setColorMode(newColorScheme);
 });
+
+//detect browser's language change
+window.onlanguagechange = function() {
+  loadLanguage();
+};
+
+//change the webpage's theme color
 function setColorMode(colorScheme) {
   //if (false) {
   if (colorScheme === "dark") {
@@ -213,6 +242,43 @@ function setColorMode(colorScheme) {
   }
 }
 
-function showPassword() {
-    apiKeyInput.type = apiKeyInput.type === "password"? "text":"password";
- }
+function showAPIKEY() {
+  apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
+}
+//load language from json file
+function loadLanguage() {
+  var lang = navigator.language || navigator.userLanguage;
+  var file = lang === "zh-CN" ? "cn.json" : "en.json";
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      var data = JSON.parse(xhr.responseText);
+      document.getElementsByName("title").innerHTML = data.title;
+      document.getElementsByName("titleHead").innerHTML = data.title;
+
+      startRecognitionButton.textContent = data.button1;
+      startTalk = data.button1;
+      stopTalk = data.button0;
+      enterPromoteButton.textContent = data.button2;
+      clearButton.textContent = data.button3;
+      saveButton.textContent = data.button4;
+      settingButton = data.button5;
+
+      promptInput.setAttribute("placeholder", data.label1);
+      ocument.getElementsByName('inputLabel').innerHTML = data.label1;
+      voiceAnswer.innerHTML = data.label2;
+      voiceAnswer.setAttribute("placeholder", data.label2);
+      apiKeyInput.setAttribute("placeholder", data.label3);
+      document.getElementsByName('showKEY').innerHTML = data.label4;
+      document.getElementsByName('showKEY').setAttribute("placeholder", data.label4);
+      document.getElementsByName("speechSetting").innerHTML = data.lable5;
+      document.getElementsByName("rateLabel").innerHTML = data.lable6;
+      document.getElementsByName("pitchLabel").innerHTML = data.lable7;
+      you = data.text1;
+      bot = data.text2;
+      waiting = data.text3;
+    }
+  };
+  xhr.open("GET", file, true);
+  xhr.send();
+}

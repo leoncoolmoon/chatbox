@@ -1,0 +1,20 @@
+{
+    "title": "Chatbot PWA",
+    "button0": "Stop Talk",
+    "button1": "Start Talk",
+    "button2": "Enter",
+    "button3": "Clear Conversation",
+    "button4": "Save Conversation",
+    "button5": "Setting",
+    "label1":"Enter promot for ChatGPT",
+    "label2":"Answer by voice",
+    "label3":"Enter your API key here",
+    "label4":"Show API key",
+    "label5":"Speech setting",
+    "label6":"Rate",
+    "label7":"Pitch",
+    "text1":"You",
+    "text2":"ChatGPT",
+    "text3":"waiting..."
+  }
+  

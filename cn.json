@@ -1,0 +1,20 @@
+{
+    "title": "对话机器人",
+    "button0": "停止语音输入",
+    "button1": "开始语音输入",
+    "button2": "发送",
+    "button3": "清空对话",
+    "button4": "保存对话",
+    "button5": "设置",
+    "label1":"输入对话内容",
+    "label2":"语音回答",
+    "label3":"输入API密匙",
+    "label4":"显示API密匙",
+    "label5":"语音设置",
+    "label6":"语速",
+    "label7":"音调",
+    "text1":"我",
+    "text2":"机器人",
+    "text3":"请稍等..."
+  }
+  

@@ -1,52 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Chatbot PWA</title>
+  <title name = "title">Chatbot PWA</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
 </head>
+
 <body>
-  <h2>Chatbot PWA</h2>
+  <h2 name = "titleHead">Chatbot PWA</h2>
   <a href="https://github.com/leoncoolmoon/chatbox/tree/main">github</a>
-<br>
+  <br>
   <div>
     <button id="start-recognition-button">Start Talk</button><br>
-    <label for="prompt-input">Enter prompt for ChatGPT:</label>
-    <input id="prompt-input" type="text" />
+    <label for="prompt-input" name = "inputLabel">Enter promot for ChatGPT</label>
+    <input id="prompt-input" type="text" placeholder="Enter promot for ChatGPT"/>
     <button id="enter-promot-button">Enter</button>
-    <input type="checkbox" id="voice">Answer by voice</input>
+    <input type="checkbox" id="voice" placeholder="Answer by voice">Answer by voice</input>
   </div>
   <div>
     <div id="conversation-display"></div>
   </div>
   <div>
     <button id="clear-conversation-button">Clear Conversation</button>
-    <button id = "save-conversation-button">Save Conversation</button><br>
-    <button id="setting-button">Setting</button>
-    <div id="setting-div">
-      <div>
-        <label for="api-key-input">Enter API key   ChatGPT:</label>
-        <input id="api-key-input" autocomplete="api-key-input" type="password" />
-        <input type="checkbox" onclick="showPassword()">Show Password
-      </div>
-      <div>
-        <label>Speech setting:</label><br>
-        <label for="rate">Rate</label><input type="range" min="0.5" max="2" value="0.5" step="0.1" id="rate" />
-        <div class="rate-value">0.5</div>
-        <div class="clearfix"></div>
-      </div>
-      <div>
-        <label for="pitch">Pitch</label><input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />
-        <div class="pitch-value">1</div>
-        <div class="clearfix"></div>
+    <button id="save-conversation-button">Save Conversation</button><br>
+    <div>
+      <button id="setting-button">Setting</button>
+      <div id="setting-div">
+        <div>
+          <label for="api-key-input">Enter your API key here</label>
+          <input id="api-key-input" autocomplete="api-key-input" type="password" placeholder="Enter your API key here"/>
+          <input type="checkbox" onclick="showAPIKEY()" placeholder="Show API key" name="showKey">Show API key</input>
+        </div>
+        <div>
+          <label name="speechSetting">Speech setting</label><br>
+          <label for="rate" name="rateLabel">Rate</label><input type="range" min="0.5" max="2" value="0.5" step="0.1" id="rate" />
+          <div class="rate-value">0.5</div>
+          <div class="clearfix"></div>
+        </div>
+        <div>
+          <label for="pitch" name="pitchLabel">Pitch</label><input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />
+          <div class="pitch-value">1</div>
+          <div class="clearfix"></div>
+        </div>
       </div>
     </div>
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>
