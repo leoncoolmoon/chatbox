@@ -262,7 +262,7 @@ function loadLanguage() {
       enterPromoteButton.textContent = data.button2;
       clearButton.textContent = data.button3;
       saveButton.textContent = data.button4;
-      settingButton = data.button5;
+      settingButton.textContent = data.button5;
 
       promptInput.setAttribute("placeholder", data.label1);
       ocument.getElementsByName('inputLabel').innerHTML = data.label1;
