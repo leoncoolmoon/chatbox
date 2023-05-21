@@ -207,7 +207,7 @@ window.addEventListener('load', () => {
   //get browser's theme color and change the webpage's theme color
   setColorMode(window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
   //load language
-  loadLanguage();
+  selectLanguage();
   // check if the browser supports service worker, then register it
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
@@ -259,6 +259,7 @@ function showAPIKEY() {
 function selectLanguage() {
   var lang = navigator.language || navigator.userLanguage;
   languageSelect.setAttribute("value", lang);
+  loadLanguage(lang);
 }
 //load language from json file
 function loadLanguage(lang) {
@@ -267,7 +268,7 @@ function loadLanguage(lang) {
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4 && xhr.status === 200) {
       var data = JSON.parse(xhr.responseText);
-      document.title =  data.title;
+      document.title = data.title;
       document.getElementById("titleHead").innerHTML = data.title;
 
       startRecognitionButton.textContent = data.button1;
@@ -280,7 +281,7 @@ function loadLanguage(lang) {
 
       promptInput.setAttribute("placeholder", data.label1);
       document.getElementById("inputLabel").innerHTML = data.label1;
-    document.getElementById("voiceLabel").innerHTML = data.label2;
+      document.getElementById("voiceLabel").innerHTML = data.label2;
       voiceAnswer.setAttribute("placeholder", data.label2);
       apiKeyInput.setAttribute("placeholder", data.label3);
       document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
