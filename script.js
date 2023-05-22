@@ -35,7 +35,10 @@ function hide() {
   apiKeyInput.style.visibility = "hidden";
 }
 // Get the input value display and save it to a cookie
-function chart(transcript) {
+function chat(transcript) {
+  enterPromoteButton.disabled = true;
+  promptInput.disabled = true;
+  startRecognitionButton.disabled = true;
   //check if the api key is empty
   if (!apiKeyInput.value) {
     conversationDisplay.innerHTML = `<p>${enterApiKey}</p>` + conversationDisplay.innerHTML;
@@ -47,6 +50,9 @@ function chart(transcript) {
       setTimeout("hide()", i);
       setTimeout("show()", i + blinkDelay / 2);
     }
+    enterPromoteButton.disabled = false;
+    promptInput.disabled = false;
+    startRecognitionButton.disabled = false;
     return;
   }
   //display a waiting message
@@ -78,6 +84,9 @@ function chart(transcript) {
       settingButton.style.display = "block";
       //replace the waiting message with the answer
       conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, answer);
+      enterPromoteButton.disabled = false;
+      promptInput.disabled = false;
+      startRecognitionButton.disabled = false;
       conversationDisplay.scrollTo(0, 0);
       document.cookie = `conversation=${conversationDisplay.innerHTML}`;
       tts(answer);
@@ -117,7 +126,7 @@ clearButton.addEventListener('click', () => {
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
   const link = document.createElement("a");
-  const file = new Blob([conversationDisplay.innerHTML.replace('</p>', "\r\n").replace(/<[^>]+>/g, '')], { type: 'text/plain' });
+  const file = new Blob([conversationDisplay.innerHTML.replace('</p>', "\r\n").replace(/<[^>]+>/g, '')], { type: 'text/plain ; charset=utf-8'});
   link.href = URL.createObjectURL(file);
   link.download = "chatBox_" + getTimestamp() + ".txt";
   link.click();
@@ -132,16 +141,16 @@ settingButton.addEventListener('click', () => {
   document.cookie = `api_key=${apiKeyInput.value}`;
 });
 //right click the settingButton to display/hide the languageSelect
-settingButton.addEventListener('contextmenu', () => {
+/*settingButton.addEventListener('contextmenu', () => {
   languageSelect.style.display = languageSelect.style.display == "none" ? "block" : "none";
   return false;
-});
+});*/
 //left click the enterPromoteButton to promote the chatbot
 enterPromoteButton.addEventListener('click', () => {
   voice = false;
   const promote = promptInput.value;
   promptInput.value = "";
-  chart(promote);
+  chat(promote);
 });
 //when press enter to promote the chatbot
 promptInput.addEventListener('keyup', (e) => {
@@ -149,7 +158,7 @@ promptInput.addEventListener('keyup', (e) => {
     voice = false;
     const promote = promptInput.value;
     promptInput.value = "";
-    chart(promote);
+    chat(promote);
   }
 });
 
@@ -157,6 +166,7 @@ promptInput.addEventListener('keyup', (e) => {
 //right click the startRecognitionButton to display cookies in alert
 startRecognitionButton.addEventListener('contextmenu', () => {
   alert(document.cookie);
+  console.log(document.cookie);
   return false;
 });
 
@@ -174,7 +184,7 @@ startRecognitionButton.addEventListener('click', () => {
         .join('');
       console.log(e);
       // Check if an API key has been provided
-      chart(transcript);
+      chat(transcript);
     });
     recognition.start();
     this.value = stopTalk;
@@ -264,37 +274,41 @@ function selectLanguage() {
 //load language from json file
 function loadLanguage(lang) {
   var file = lang === "zh-CN" ? "cn.json" : "en.json";
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-      var data = JSON.parse(xhr.responseText);
-      document.title = data.title;
-      document.getElementById("titleHead").innerHTML = data.title;
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var data = JSON.parse(xhr.responseText);
+        document.title = data.title;
+        document.getElementById("titleHead").innerHTML = data.title;
 
-      startRecognitionButton.textContent = data.button1;
-      startTalk = data.button1;
-      stopTalk = data.button0;
-      enterPromoteButton.textContent = data.button2;
-      clearButton.textContent = data.button3;
-      saveButton.textContent = data.button4;
-      settingButton.textContent = data.button5;
+        startRecognitionButton.textContent = data.button1;
+        startTalk = data.button1;
+        stopTalk = data.button0;
+        enterPromoteButton.textContent = data.button2;
+        clearButton.textContent = data.button3;
+        saveButton.textContent = data.button4;
+        settingButton.textContent = data.button5;
 
-      promptInput.setAttribute("placeholder", data.label1);
-      document.getElementById("inputLabel").innerHTML = data.label1;
-      document.getElementById("voiceLabel").innerHTML = data.label2;
-      voiceAnswer.setAttribute("placeholder", data.label2);
-      apiKeyInput.setAttribute("placeholder", data.label3);
-      document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
-      document.getElementById("showKeyLabel").innerHTML = data.label4;
-      document.getElementById("showKey").setAttribute("placeholder", data.label4);
-      document.getElementById("speechSettingLabel").innerHTML = data.label5;
-      document.getElementById("rateLabel").innerHTML = data.label6;
-      document.getElementById("pitchLabel").innerHTML = data.label7;
-      you = data.text1;
-      bot = data.text2;
-      waiting = data.text3;
-      enterApiKey = data.text4;
+        promptInput.setAttribute("placeholder", data.label1);
+        document.getElementById("inputLabel").innerHTML = data.label1;
+        document.getElementById("voiceLabel").innerHTML = data.label2;
+        voiceAnswer.setAttribute("placeholder", data.label2);
+        apiKeyInput.setAttribute("placeholder", data.label3);
+        document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
+        document.getElementById("showKeyLabel").innerHTML = data.label4;
+        document.getElementById("showKey").setAttribute("placeholder", data.label4);
+        document.getElementById("speechSettingLabel").innerHTML = data.label5;
+        document.getElementById("rateLabel").innerHTML = data.label6;
+        document.getElementById("pitchLabel").innerHTML = data.label7;
+        you = data.text1;
+        bot = data.text2;
+        waiting = data.text3;
+        enterApiKey = data.text4;
+      }
     }
+  } catch (e) {
+    console.log(e);
   };
   xhr.open("GET", file, true);
   xhr.send();

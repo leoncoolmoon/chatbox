@@ -13,14 +13,14 @@ p.botText {
     font-size: 1em;
     color: #4caf50;
   }
-input[type="text"] {
+input {
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
   margin-right: 8px;
   width: -webkit-fill-available;
 }
-input[type="password"] {
+select {
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
