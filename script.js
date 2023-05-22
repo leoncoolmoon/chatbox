@@ -56,7 +56,7 @@ function chat(transcript) {
     return;
   }
   //display a waiting message
-  conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <p class = "userText"> ${transcript}: ${you}</p><p class = "botText">${bot}: ${waiting}</p>` + conversationDisplay.innerHTML;
+  conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <div class = "userdiv">${you}:<p class = "userText"> ${transcript} </p></div><div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div>` + conversationDisplay.innerHTML;
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const headers = {
     "Content-Type": "application/json",

@@ -1,17 +1,26 @@
 body {
   font-family: sans-serif;
 }
-
+div.userdiv {
+    text-align: right;
+}
 p.timeStemp {
-    font-size: 0.6em;
+    font-size: xx-small;
 }
 p.userText {
     font-size: 1em;
     text-align: right;
+    border-radius: 8px 0px 8px 8px;
+    background: #4CAF50;
+    padding: 0.5em;
+    text-shadow: black 0.05em 0.05em 0.1em;
 }
 p.botText {
     font-size: 1em;
-    color: #4caf50;
+    padding: 0.5em;
+    background: #242526;
+    border-radius: 0px 8px 8px 8px;
+    text-shadow: #726f6f 0.05em 0.05em 0.1em;
   }
 input {
   padding: 8px;
@@ -71,3 +80,6 @@ a:hover{
   border-radius: 4px;
   padding: 0.5em;
 }
+input[type="checkbox" i] {
+    width: auto;
+  }
