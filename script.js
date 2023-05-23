@@ -20,7 +20,7 @@ var waiting = "waiting...";
 var enterApiKey = "Please enter an API key";
 var startTalk = "Start Talk";
 var stopTalk = "Stop Talk";
-var history=[];
+var historyList=[];
 //get the current time
 function getTimestamp() {
   const date = new Date();
@@ -54,10 +54,11 @@ function chat(transcript) {
     return;
   }
 //keep a 10 history
-  if (history.length > 10) {
-    history.shift();
+  if (historyList.length > 10) {
+    historyList.shift();
   }
-  history.push(transcript);
+  console.log(Array.isArray(historyList));
+  historyList.push(transcript);
   enterPromoteButton.disabled = true;
   promptInput.disabled = true;
   startRecognitionButton.disabled = true;
@@ -95,7 +96,7 @@ function chat(transcript) {
       promptInput.disabled = false;
       startRecognitionButton.disabled = false;
       conversationDisplay.scrollTo(0, 0);
-      document.cookie = `history=${history}`;
+      document.cookie = `historyList=${historyList}`;
       document.cookie = `conversation=${conversationDisplay.innerHTML}`;
       tts(answer);
     }).catch(error => console.error(error));
@@ -168,7 +169,7 @@ enterPromoteButton.addEventListener('click', () => {
 //right click the enterPromoteButton to clear the history promote
 enterPromoteButton.addEventListener('contextmenu', function (e) {
   e.preventDefault();
-  history = [];
+  historyList = [];
   return false;
 });
 //when press enter to promote the chatbot
@@ -179,7 +180,7 @@ promptInput.addEventListener('keyup', (e) => {
     chat(promote);
   }
   if (e.key === "Up") {
-    promptInput.value = history[history.length - 1];
+    promptInput.value = historyList[historyList.length - 1];
   }
 });
 //right click the startRecognitionButton to display cookies in alert
@@ -231,7 +232,7 @@ window.addEventListener('load', () => {
     rateValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)rate\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     rate.value = rateValue.textContent;
     conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-    history = document.cookie.replace(/(?:(?:^|.*;\s*)history\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",");
+    historyList = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",");
   } else {
     settingDiv.style.display = "block";
   }
