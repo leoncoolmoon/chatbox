@@ -19,7 +19,7 @@ function addSearch(uiDiv, targetDiv) {
     searchToolButton.innerHTML = 'Search';
     searchToolButton.addEventListener('click', function () {
         searchList.style.display = 'block';
-        searchbar.style.display = 'flex';
+        searchbar.style.display = 'contents';
         this.style.display = 'none';
     });
     searchTool.appendChild(searchToolButton);
@@ -52,6 +52,7 @@ function addSearch(uiDiv, targetDiv) {
     highlight.setAttribute('type', 'color');
     highlight.setAttribute('value', '#ffff00');
     highlight.style.backgroundColor = '#ffff00';
+    highlight.setAttribute('title', 'Highlight Color');
     highlight.style.width = '1em';
     highlight.style.margin = '8px';
     highlight.addEventListener('input', function () {
@@ -68,6 +69,17 @@ function addSearch(uiDiv, targetDiv) {
     caseSensitiveLabel.setAttribute('for', 'caseSensitive');
     caseSensitiveLabel.innerHTML = 'Case Sensitive';
     searchbar.appendChild(caseSensitiveLabel);
+    //create the match whole word checkbox
+    const matchWholeWord = document.createElement('input');
+    matchWholeWord.setAttribute('id', 'matchWholeWord');
+    matchWholeWord.setAttribute('type', 'checkbox');
+    matchWholeWord.setAttribute('value', 'matchWholeWord');
+    searchbar.appendChild(matchWholeWord);
+    const matchWholeWordLabel = document.createElement('label');
+    matchWholeWordLabel.setAttribute('for', 'matchWholeWord');
+    matchWholeWordLabel.innerHTML = 'Match Whole Word';
+    searchbar.appendChild(matchWholeWordLabel);
+
     //create the search button
     const searchButton = document.createElement('button');
     searchButton.setAttribute('id', 'searchButton');
@@ -79,7 +91,7 @@ function addSearch(uiDiv, targetDiv) {
     searchButton.addEventListener('click', function () {
         if (searchCounter < maxSearch) {
             var tagName = 'searchListItem' + (searchCounter + 1);
-            highlight.value = highlight.value !="#000000"? highlight.value : idealcolor[searchCounter % 10];
+            highlight.value = highlight.value != "#000000" ? highlight.value : idealcolor[searchCounter % 10];
             highlight.style.backgroundColor = highlight.value;
             if (highlightText(tagName, searchInput.value, highlight.value)) {
                 searchCounter++;
@@ -108,18 +120,18 @@ function addSearch(uiDiv, targetDiv) {
     });
     searchbar.appendChild(searchButton);
     //create the next and previous buttons
-    // const nextButton = document.createElement('button');
-    // nextButton.setAttribute('id', 'nextButton');
-    // nextButton.style.display = 'none';
-    // nextButton.innerHTML = 'Next';
-    // nextButton.setAttribute('onclick', 'nextSearch()');
-    // searchbar.appendChild(nextButton);
-    // const previousButton = document.createElement('button');
-    // previousButton.setAttribute('id', 'previousButton');
-    // previousButton.style.display = 'none';
-    // previousButton.innerHTML = 'Previous';
-    // previousButton.setAttribute('onclick', 'previousSearch()');
-    // searchbar.appendChild(previousButton);
+    const nextButton = document.createElement('button');
+    nextButton.setAttribute('id', 'nextButton');
+    nextButton.style.display = 'none';
+    nextButton.innerHTML = 'Next';
+    nextButton.setAttribute('onclick', 'nextSearch()');
+    searchbar.appendChild(nextButton);
+    const previousButton = document.createElement('button');
+    previousButton.setAttribute('id', 'previousButton');
+    previousButton.style.display = 'none';
+    previousButton.innerHTML = 'Previous';
+    previousButton.setAttribute('onclick', 'previousSearch()');
+    searchbar.appendChild(previousButton);
     //create the clear button
     const clearSearch = document.createElement('button');
     clearSearch.setAttribute('id', 'clearSearch');
@@ -156,7 +168,7 @@ function modifySearch(element) {
     unhighlightText(element.getAttribute('id'));
     searchInput.value = element.innerHTML;
     searchCounter--;
-    highlight.value = element.style.backgroundColor!="#000000" ? element.style.backgroundColor : idealcolor[searchCounter % 10];
+    highlight.value = element.style.backgroundColor != "#000000" ? element.style.backgroundColor : idealcolor[searchCounter % 10];
     highlight.style.backgroundColor = highlight.value;
     element.remove();
     //un highlight all the text done by this search
@@ -164,10 +176,12 @@ function modifySearch(element) {
     nextButton.style.display = 'none';
     previousButton.style.display = 'none';
 }
-//var highlightItems = {};
+var highlightItems = [];
+var showPoint = 0;
 function highlightText(tagName, searchText, color) {
     var toBeSearched = searchedDiv.innerHTML.toString();
     var pureText = searchedDiv.textContent;
+    searchText = matchWholeWord.checked?'\\b'+searchText+'\\b':searchText;
     matches = pureText.match(new RegExp(searchText, (caseSensitive.checked ? "g" : "gi")));
     // If there are no matches, return.
     if (!matches) {
@@ -176,12 +190,12 @@ function highlightText(tagName, searchText, color) {
     // Highlight all the matching text.
     var lastEnd = 0;
     //clear highlightItems
- //   highlightItems = {};
-// //test text position
-//     var range = document.createRange();
-//     range.selectNode(div);
-//     var textNode;
-// //test text position
+    highlightItems = [];
+    //test text position
+    var range = document.createRange();
+    range.selectNode(searchedDiv);
+    var textNode;
+    //test text position
     for (const match of matches) {
         const span = document.createElement("span");
         span.style.color = color;
@@ -192,28 +206,19 @@ function highlightText(tagName, searchText, color) {
             start = toBeSearched.indexOf(match, start + 1);
         }
         if (start != -1) {
+            span.setAttribute('id', 'highlight' + start);
             var end = start + match.length;
             toBeSearched = toBeSearched.slice(0, start) + span.outerHTML + toBeSearched.slice(end);
             lastEnd = start + span.outerHTML.length;
-
-// //test text position
-//             var rect = textNode.getBoundingClientRect();
-//             var x = rect.left - div.offsetLeft;
-//             var y = rect.top - div.offsetTop;
-//     //test text position        
-            
-//             highlightItems.newItem = { start: start, text: match,end:lastEnd, x:x,y: y};
         }
-
-
+        highlightItems.push( { start: start, text: match, end: lastEnd });
     }
     searchedDiv.innerHTML = toBeSearched;
     // Scroll to the first matching result.
-    const firstMatch = matches[0];
-    position = firstMatch.offsetTop;
-    const firstMatchOffset = searchedDiv.offsetTop + firstMatch.offsetTop;
-    window.scrollTo(0, firstMatchOffset);
-    searchedDiv.scrollTop = position;
+    searchedDiv.focus();
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(createRangeFromPosition(highlightItems[0]));
+
     return true;
 }
 //function to check if the position in inside a tag
@@ -229,42 +234,31 @@ function unhighlightText(tagName) {
         }
     }
 }
-// function nextSearch() {
-//     // Scroll to the next matching result.
-//     for (var i = 0; i < matches.length; i++) {
-//         if (matches[i].offsetTop > position) {
-//             position = matches[i].offsetTop;
-//             const MatchOffset = searchedDiv.offsetTop + firstMatch.offsetTop;
-//             window.scrollTo(0, MatchOffset);
-//             searchedDiv.scrollTop = position;
-//             return;
-//         }
-//     }
-//     // If no more matches, scroll to the first match.
-//     position = matches[0].offsetTop;
-//     const MatchOffset = searchedDiv.offsetTop + firstMatch.offsetTop;
-//     window.scrollTo(0, MatchOffset);
-//     searchedDiv.scrollTop = position;
-// }
-// function previousSearch() {
-//     // Scroll to the previous matching result.
-//     for (var i = matches.length - 1; i >= 0; i--) {
-//         if (matches[i].offsetTop < position) {
-//             position = matches[i].offsetTop;
-//             const MatchOffset = searchedDiv.offsetTop + firstMatch.offsetTop;
-//             window.scrollTo(0, MatchOffset);
-//             searchedDiv.scrollTop = position;
-//             return;
-//         }
-//     }
-//     // If no more matches, scroll to the last match.
-//     position = matches[matches.length - 1].offsetTop;
-//     const MatchOffset = searchedDiv.offsetTop + firstMatch.offsetTop;
-//     window.scrollTo(0, MatchOffset);
-//     searchedDiv.scrollTop = position;
-// }
+function nextSearch() {
+    // Scroll to the next matching result.
+    searchedDiv.focus();
+    showPoint = (showPoint+1) % highlightItems.length;
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(createRangeFromPosition(highlightItems[showPoint]));
+}
+function previousSearch() {
+    // Scroll to the previous matching result.
+    searchedDiv.focus();
+    showPoint = (highlightItems.length+showPoint-1) % highlightItems.length;
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(createRangeFromPosition(highlightItems[showPoint]));
+}
 
 function test() {
     searchedDiv.innerHTML = "<div>Test:<p class = 'botText'>Testing is a crucial part of any software development lifecycle. It ensures that the software meets the required quality standards, is reliable, and performs as expected. Testing is the process of evaluating a system or its component(s) with the intent to find whether it satisfies the specified requirements or not. It is essential to identify and fix any defects in the software before it is released to the end-users. There are different types of testing that can be performed on software, such as functional testing, performance testing, security testing, usability testing, and many more. Each type of testing focuses on a specific aspect of the software and helps to ensure that it meets the required criteria. Functional testing is a type of testing that focuses on verifying whether the software functions as expected. It includes various types of testing such as unit testing, integration testing, system testing, and acceptance testing. Performance testing is another type of testing that focuses on evaluating the performance of the software, such as load testing and stress testing. Security testing is a type of testing that focuses on identifying and fixing security vulnerabilities in the software. Usability testing, on the other hand, focuses on evaluating the ease of use of the software. Testing can be performed manually or using automated tools. Manual testing involves a tester manually testing the software, while automated testing involves using automated tools to perform the tests. Automated testing is faster, more efficient, and can be performed repeatedly, making it ideal for regression testing. In conclusion, testing is an essential part of the software development lifecycle. It ensures that the software meets the required quality standards and performs as expected. Different types of testing can be performed on software, such as functional testing, performance testing, security testing, usability testing, and many more. Testing can be performed manually or using automated tools, with automated testing being faster and more efficient.</p></div>"
 }
 
+function createRangeFromPosition(hl) {
+    // Create a new Range object
+    let range = document.createRange();
+    // Split the text content of the element into two TextNode objects
+    let textNode = document.getElementById("highlight"+hl.start).firstChild;
+    range.setStart(textNode, 0);
+    range.setEnd(textNode, hl.text.length);
+    return range;
+}
