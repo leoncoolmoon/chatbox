@@ -20,7 +20,7 @@ var waiting = "waiting...";
 var enterApiKey = "Please enter an API key";
 var startTalk = "Start Talk";
 var stopTalk = "Stop Talk";
-
+var history=[];
 //get the current time
 function getTimestamp() {
   const date = new Date();
@@ -36,9 +36,7 @@ function hide() {
 }
 // Get the input value display and save it to a cookie
 function chat(transcript) {
-  enterPromoteButton.disabled = true;
-  promptInput.disabled = true;
-  startRecognitionButton.disabled = true;
+
   //check if the api key is empty
   if (!apiKeyInput.value) {
     conversationDisplay.innerHTML = `<p>${enterApiKey}</p>` + conversationDisplay.innerHTML;
@@ -55,6 +53,15 @@ function chat(transcript) {
     startRecognitionButton.disabled = false;
     return;
   }
+//keep a 10 history
+  if (history.length > 10) {
+    history.shift();
+  }
+  history.push(transcript);
+  enterPromoteButton.disabled = true;
+  promptInput.disabled = true;
+  startRecognitionButton.disabled = true;
+  promptInput.value = "";
   //display a waiting message
   conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <div class = "userdiv">${you}:<p class = "userText"> ${transcript} </p></div><div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div>` + conversationDisplay.innerHTML;
   const apiUrl = "https://api.openai.com/v1/chat/completions";
@@ -88,6 +95,7 @@ function chat(transcript) {
       promptInput.disabled = false;
       startRecognitionButton.disabled = false;
       conversationDisplay.scrollTo(0, 0);
+      document.cookie = `history=${history}`;
       document.cookie = `conversation=${conversationDisplay.innerHTML}`;
       tts(answer);
     }).catch(error => console.error(error));
@@ -123,10 +131,15 @@ clearButton.addEventListener('click', () => {
   conversationDisplay.innerHTML = "";
   document.cookie = `conversation=`;
 });
+//right click the voiceAnswer to read everything answer
+voiceAnswer.addEventListener('contextmenu',function(e){
+  e.preventDefault();
+  tts(conversationDisplay.textContent);
+});
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
   const link = document.createElement("a");
-  const file = new Blob([conversationDisplay.innerHTML.replace('</p>', "\r\n").replace(/<[^>]+>/g, '')], { type: 'text/plain ; charset=utf-8'});
+  const file = new Blob([conversationDisplay.textContent], { type: 'text/plain ; charset=utf-8' });
   link.href = URL.createObjectURL(file);
   link.download = "chatBox_" + getTimestamp() + ".txt";
   link.click();
@@ -141,7 +154,8 @@ settingButton.addEventListener('click', () => {
   document.cookie = `api_key=${apiKeyInput.value}`;
 });
 //right click the settingButton to display/hide the languageSelect
-/*settingButton.addEventListener('contextmenu', () => {
+/*settingButton.addEventListener('contextmenu', function (e) {
+   e.preventDefault();
   languageSelect.style.display = languageSelect.style.display == "none" ? "block" : "none";
   return false;
 });*/
@@ -149,22 +163,28 @@ settingButton.addEventListener('click', () => {
 enterPromoteButton.addEventListener('click', () => {
   voice = false;
   const promote = promptInput.value;
-  promptInput.value = "";
   chat(promote);
+});
+//right click the enterPromoteButton to clear the history promote
+enterPromoteButton.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+  history = [];
+  return false;
 });
 //when press enter to promote the chatbot
 promptInput.addEventListener('keyup', (e) => {
   if (e.key === "Enter") {
     voice = false;
     const promote = promptInput.value;
-    promptInput.value = "";
     chat(promote);
   }
+  if (e.key === "Up") {
+    promptInput.value = history[history.length - 1];
+  }
 });
-
-
 //right click the startRecognitionButton to display cookies in alert
-startRecognitionButton.addEventListener('contextmenu', () => {
+startRecognitionButton.addEventListener('contextmenu', function (e){
+  e.preventDefault();
   alert(document.cookie);
   console.log(document.cookie);
   return false;
@@ -211,6 +231,7 @@ window.addEventListener('load', () => {
     rateValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)rate\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     rate.value = rateValue.textContent;
     conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    history = document.cookie.replace(/(?:(?:^|.*;\s*)history\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",");
   } else {
     settingDiv.style.display = "block";
   }
@@ -244,6 +265,7 @@ window.onlanguagechange = function () {
 //change the webpage's theme color
 function setColorMode(colorScheme) {
   //if (false) {
+ /*
   if (colorScheme === "dark") {
     // set page color theme in dark mode
     document.body.style.backgroundColor = "#000000";
@@ -260,6 +282,15 @@ function setColorMode(colorScheme) {
     apiKeyInput.style.color = "#000000";
     promptInput.style.backgroundColor = "#ffffff";
     promptInput.style.color = "#000000";
+  }
+  */
+  document.body.style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
+  document.body.style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
+  const inputElements = document.querySelectorAll('input[type="text"]');
+  // Loop through each input element and change its color
+  for (let i = 0; i < inputElements.length; i++) {
+    inputElements[i].style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
+    inputElements[i].style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
   }
 }
 

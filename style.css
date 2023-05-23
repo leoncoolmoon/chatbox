@@ -1,5 +1,6 @@
 body {
   font-family: sans-serif;
+  text-shadow: 0.1em 0.1em 0.05em black;
 }
 div.userdiv {
     text-align: right;
