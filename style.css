@@ -1,6 +1,7 @@
 body {
   font-family: sans-serif;
   text-shadow: 0.05em 0.05em 0.025em rgba(0, 0, 0, 0.5);
+  overscroll-behavior-y: contain; 
 }
 div.userdiv {
     text-align: right;
