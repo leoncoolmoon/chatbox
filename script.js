@@ -265,26 +265,6 @@ window.onlanguagechange = function () {
 
 //change the webpage's theme color
 function setColorMode(colorScheme) {
-  //if (false) {
- /*
-  if (colorScheme === "dark") {
-    // set page color theme in dark mode
-    document.body.style.backgroundColor = "#000000";
-    document.body.style.color = "#ffffff";
-    apiKeyInput.style.backgroundColor = "#000000";
-    apiKeyInput.style.color = "#ffffff";
-    promptInput.style.backgroundColor = "#000000";
-    promptInput.style.color = "#ffffff";
-  } else {
-    // set page color theme in light mode
-    document.body.style.backgroundColor = "#ffffff";
-    document.body.style.color = "#000000";
-    apiKeyInput.style.backgroundColor = "#ffffff";
-    apiKeyInput.style.color = "#000000";
-    promptInput.style.backgroundColor = "#ffffff";
-    promptInput.style.color = "#000000";
-  }
-  */
   document.body.style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
   document.body.style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
   const inputElements = document.querySelectorAll('input[type="text"]');
