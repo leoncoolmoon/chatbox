@@ -188,15 +188,15 @@ function addSearch(uiDiv, targetDiv) {
         highlight.style.backgroundColor = '#ffff00';
         searchCounter = 0;
         searchList.innerHTML = '';
+        searchList.appendChild(searchToolButton);
         nextButton.style.display = 'none';
         previousButton.style.display = 'none';
         clearSearch.style.display = 'none';
         //un highlight all the text done by all searchs
     });
-    searchList.appendChild(searchToolButton);
+    searchbar.appendChild(clearSearch);
     searchbar.appendChild(searchInput);
     searchbar.appendChild(highlight);
-    searchbar.appendChild(clearSearch);
     searchbar.appendChild(matchWholeWordLabel);
     searchbar.appendChild(matchWholeWord);
     searchbar.appendChild(caseSensitiveLabel);
@@ -204,7 +204,6 @@ function addSearch(uiDiv, targetDiv) {
     searchbar.appendChild(previousButton);
     searchbar.appendChild(nextButton);
     searchbar.appendChild(searchButton);
-
     //move uiDIV with mouse
     var mousePosition;
     var offset = [0, 0];
