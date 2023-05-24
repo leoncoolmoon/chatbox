@@ -23,7 +23,7 @@ function addSearch(toolDiv, targetDiv) {
     uiDiv.style.borderRadius = '4px';
     uiDiv.appendChild(searchTool);
     var parentDiv = document.getElementById('parentDiv');
-    var originalPosition ;
+    var originalPosition;
     originalPosition = {
         x: uiDiv.offsetLeft - parentDiv.offsetLeft,
         y: uiDiv.offsetTop - parentDiv.offsetTop
@@ -41,10 +41,10 @@ function addSearch(toolDiv, targetDiv) {
         uiDiv.style.boxShadow = searchbar.style.display == 'flex' ? 'rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em' : 'none';
         //set innerHTML to "X" when fixed
         this.innerHTML = searchbar.style.display == 'flex' ? 'X' : 'Search Tool';
-       if (searchbar.style.display == 'flex') {
-        uiDiv.style.left = parentDiv.offsetLeft + 'px';
-        uiDiv.style.top = parentDiv.offsetTop + 'px';
- 
+        if (searchbar.style.display == 'flex') {
+            uiDiv.style.left = parentDiv.offsetLeft + 'px';
+            uiDiv.style.top = parentDiv.offsetTop + 'px';
+
             floated = true;
         } else {
             uiDiv.style.left = originalPosition.x + 'px';
@@ -213,13 +213,13 @@ function addSearch(toolDiv, targetDiv) {
     searchbar.appendChild(previousButton);
     searchbar.appendChild(nextButton);
     searchbar.appendChild(searchButton);
-   //move uiDIV with mouse or touch
-   uiDiv.addEventListener('mousedown', dragStart);
-   uiDiv.addEventListener('touchstart', dragStart, { passive: true });
-   document.addEventListener('mousemove', drag);
-   document.addEventListener('touchmove', drag, { passive: true });
-   document.addEventListener('mouseup', dragEnd);
-   document.addEventListener('touchend', dragEnd);
+    //move uiDIV with mouse or touch
+    uiDiv.addEventListener('mousedown', dragStart);
+    uiDiv.addEventListener('touchstart', dragStart, { passive: true });
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('touchmove', drag, { passive: true });
+    document.addEventListener('mouseup', dragEnd);
+    document.addEventListener('touchend', dragEnd);
 
 }
 //modify the search list
@@ -337,39 +337,41 @@ function rgbtohex(rgb) {
 function hex(x) {
     return ("0" + parseInt(x).toString(16)).slice(-2);
 }
-  function dragStart(e) {
-    isDown = true;
-    if (e.type === 'touchstart') {
-      offset = [
-        uiDiv.offsetLeft - e.touches[0].clientX,
-        uiDiv.offsetTop - e.touches[0].clientY
-      ];
-    } else {
-      offset = [
-        uiDiv.offsetLeft - e.clientX,
-        uiDiv.offsetTop - e.clientY
-      ];
+function dragStart(e) {
+    if (floated) {
+        isDown = true;
+        if (e.type === 'touchstart') {
+            offset = [
+                uiDiv.offsetLeft - e.touches[0].clientX,
+                uiDiv.offsetTop - e.touches[0].clientY
+            ];
+        } else {
+            offset = [
+                uiDiv.offsetLeft - e.clientX,
+                uiDiv.offsetTop - e.clientY
+            ];
+        }
     }
-  }
-  
-  function drag(e) {
+}
+
+function drag(e) {
     if (isDown) {
-      var newX, newY;
-      if (e.type === 'touchmove') {
-        newX = e.touches[0].clientX + offset[0];
-        newY = e.touches[0].clientY + offset[1];
-      } else {
-        newX = e.clientX + offset[0];
-        newY = e.clientY + offset[1];
-      }
-      var maxX = window.innerWidth - uiDiv.offsetWidth;
-      var maxY = window.innerHeight - uiDiv.offsetHeight;
-      newX = Math.max(0, Math.min(newX, maxX));
-      newY = Math.max(0, Math.min(newY, maxY));
-      uiDiv.style.left = newX + 'px';
-      uiDiv.style.top = newY + 'px';
+        var newX, newY;
+        if (e.type === 'touchmove') {
+            newX = e.touches[0].clientX + offset[0];
+            newY = e.touches[0].clientY + offset[1];
+        } else {
+            newX = e.clientX + offset[0];
+            newY = e.clientY + offset[1];
+        }
+        var maxX = window.innerWidth - uiDiv.offsetWidth;
+        var maxY = window.innerHeight - uiDiv.offsetHeight;
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+        uiDiv.style.left = newX + 'px';
+        uiDiv.style.top = newY + 'px';
     }
-  }
-    function dragEnd() {
+}
+function dragEnd() {
     isDown = false;
-  }
+}
