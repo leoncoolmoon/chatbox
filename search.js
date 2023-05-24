@@ -4,11 +4,17 @@ const maxSearch = 10;
 var searchCounter = 0;
 addSearch(document.getElementById('toolbar'), document.getElementById('conversation-display'));
 var searchedDiv;
+var uiDiv;
+var mousePosition;
+var offset = [0, 0];
+var isDown = false;
+var floated = false;
 //ideal 10 highlight color list
 var idealcolor = ["#ffff00", "#ff00ff", "#00ffff", "#ff0000", "#00ff00", "#0000ff", "#ff8000", "#ff0080", "#80ff00", "#8000ff"];
-function addSearch(uiDiv, targetDiv) {
+function addSearch(toolDiv, targetDiv) {
     var backgroundColor = window.matchMedia('(prefers-color-scheme: dark)').matches ? "#000000" : "#ffffff";
     searchedDiv = targetDiv;
+    uiDiv = toolDiv
     //create the search tool
     const searchTool = document.createElement('div');
     searchTool.setAttribute('id', 'searchTool');
@@ -18,7 +24,6 @@ function addSearch(uiDiv, targetDiv) {
     uiDiv.appendChild(searchTool);
     var parentDiv = document.getElementById('parentDiv');
     var originalPosition ;
-    var floated = false;
     originalPosition = {
         x: uiDiv.offsetLeft - parentDiv.offsetLeft,
         y: uiDiv.offsetTop - parentDiv.offsetTop
@@ -60,6 +65,9 @@ function addSearch(uiDiv, targetDiv) {
     searchbar.setAttribute('id', 'searchbar');
     searchbar.style.display = 'none';
     searchTool.appendChild(searchbar);
+    searchbar.style.flexWrap = 'wrap';
+    searchbar.style.justifyContent = 'flex-start';
+    searchbar.style.alignItems = 'center';
     //create the search input
     const searchInput = document.createElement('input');
     searchInput.style.backgroundColor = backgroundColor;
@@ -67,6 +75,7 @@ function addSearch(uiDiv, targetDiv) {
     searchInput.setAttribute('type', 'text');
     searchInput.setAttribute('id', 'searchInput');
     searchInput.setAttribute('placeholder', 'Search');
+    searchInput.style.width = 'fit-content';
     searchInput.addEventListener('keyup', function (e) {
         if (e.key === "Enter") {
             searchButton.click();
@@ -194,49 +203,21 @@ function addSearch(uiDiv, targetDiv) {
         clearSearch.style.display = 'none';
         //un highlight all the text done by all searchs
     });
-    searchbar.appendChild(clearSearch);
     searchbar.appendChild(searchInput);
     searchbar.appendChild(highlight);
     searchbar.appendChild(matchWholeWordLabel);
     searchbar.appendChild(matchWholeWord);
     searchbar.appendChild(caseSensitiveLabel);
     searchbar.appendChild(caseSensitive);
+    searchbar.appendChild(clearSearch);
     searchbar.appendChild(previousButton);
     searchbar.appendChild(nextButton);
     searchbar.appendChild(searchButton);
-    //move uiDIV with mouse
-    var mousePosition;
-    var offset = [0, 0];
-    var isDown = false;
-    uiDiv.addEventListener('mousedown', function (e) {
-        if (floated) {
-            isDown = true;
-            offset = [
-                uiDiv.offsetLeft - e.clientX,
-                uiDiv.offsetTop - e.clientY
-            ];
-        }
-    }
-        , true);
-    document.addEventListener('mouseup', function () {
-        isDown = false;
-    }
-        , true);
-    document.addEventListener('mousemove', function (event) {
-        if (floated) {
-            event.preventDefault();
-            if (isDown) {
-                mousePosition = {
-                    x: event.clientX,
-                    y: event.clientY
-                };
-                uiDiv.style.left = (mousePosition.x + offset[0]) + 'px';
-                uiDiv.style.top = (mousePosition.y + offset[1]) + 'px';
-            }
-        }
-    }
-        , true);
-    //move uiDIV with mouse
+   //move uiDIV with mouse or touch
+uiDiv.addEventListener('mousedown', dragStart);
+uiDiv.addEventListener('touchstart', dragStart);
+document.addEventListener('mouseup', dragEnd);
+document.addEventListener('touchend', dragEnd);
 
 }
 //modify the search list
@@ -354,3 +335,29 @@ function rgbtohex(rgb) {
 function hex(x) {
     return ("0" + parseInt(x).toString(16)).slice(-2);
 }
+function dragStart(e) {
+    if (floated) {
+      isDown = true;
+      offset = [
+        uiDiv.offsetLeft - e.clientX || e.touches[0].clientX,
+        uiDiv.offsetTop - e.clientY || e.touches[0].clientY
+      ];
+      document.addEventListener('mousemove', drag);
+      document.addEventListener('touchmove', drag);
+    }
+  }
+  function drag(e) {
+    if (isDown) {
+      mousePosition = {
+        x: e.clientX || e.touches[0].clientX,
+        y: e.clientY || e.touches[0].clientY
+      };
+      uiDiv.style.left = (mousePosition.x + offset[0]) + 'px';
+      uiDiv.style.top = (mousePosition.y + offset[1]) + 'px';
+    }
+  }
+  function dragEnd() {
+    isDown = false;
+    document.removeEventListener('mousemove', drag);
+    document.removeEventListener('touchmove', drag);
+  }
