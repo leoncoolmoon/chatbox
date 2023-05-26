@@ -19,8 +19,9 @@ var bot = "Chatbot";
 var waiting = "waiting...";
 var enterApiKey = "Please enter an API key";
 var startTalk = "Start Talk";
+var noanswer = "I have a mind block, please ask another question.";
 var stopTalk = "Stop Talk";
-var historyList=[];
+var historyList = [];
 //get the current time
 function getTimestamp() {
   const date = new Date();
@@ -34,26 +35,28 @@ function show() {
 function hide() {
   apiKeyInput.style.visibility = "hidden";
 }
+function remindAPIKey() {
+  conversationDisplay.innerHTML = `<p>${enterApiKey}</p>` + conversationDisplay.innerHTML;
+  settingDiv.style.display = "block";
+  apiKeyInput.scrollIntoView();
+  var blinkDelay = 900;
+  var blinkTimes = 3;
+  for (var i = blinkDelay; i < blinkDelay * (blinkTimes + 1); i = i + blinkDelay) {
+    setTimeout("hide()", i);
+    setTimeout("show()", i + blinkDelay / 2);
+  }
+}
 // Get the input value display and save it to a cookie
 function chat(transcript) {
-
   //check if the api key is empty
   if (!apiKeyInput.value) {
-    conversationDisplay.innerHTML = `<p>${enterApiKey}</p>` + conversationDisplay.innerHTML;
-    settingDiv.style.display = "block";
-    apiKeyInput.scrollIntoView();
-    var blinkDelay = 900;
-    var blinkTimes = 3;
-    for (var i = blinkDelay; i < blinkDelay * (blinkTimes + 1); i = i + blinkDelay) {
-      setTimeout("hide()", i);
-      setTimeout("show()", i + blinkDelay / 2);
-    }
+    remindAPIKey();
     enterPromoteButton.disabled = false;
     promptInput.disabled = false;
     startRecognitionButton.disabled = false;
     return;
   }
-//keep a 10 history
+  //keep a 10 history
   if (historyList.length > 10) {
     historyList.shift();
   }
@@ -87,19 +90,38 @@ function chat(transcript) {
     .then(response => response.json())
     // .then(data => console.log(data))
     .then(data => {
-      const answer = data.choices[0].message.content;
+      var answer = data.choices[0].message.content;
       settingDiv.style.display = "none";
       settingButton.style.display = "block";
+      //XSS protection
+      answer = answer.replace(/&/g, '&amp;');
+      answer = answer.replace(/</g, '&lt;');
+      answer = answer.replace(/>/g, '&gt;');
+      answer = answer.replace(/"/g, '&quot;');
+      answer = answer.replace(/\\\\n/g, "+<br>+");
+      answer = answer.replace(/\\\\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
+      answer = answer.replace(/\//g, '&#47;');
+      answer = answer.replace(/'/g, '&#39;');
+      answer = answer.replace(/`/g, '&#96;');
+      answer = answer.replace(/\n/g, "<br>");
       //replace the waiting message with the answer
       conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, answer);
-      enterPromoteButton.disabled = false;
-      promptInput.disabled = false;
-      startRecognitionButton.disabled = false;
       conversationDisplay.scrollTo(0, 0);
       document.cookie = `historyList=${historyList}`;
       document.cookie = `conversation=${conversationDisplay.innerHTML}`;
       tts(answer);
-    }).catch(error => console.error(error));
+    }).catch(error => {
+      console.error(error.toString())
+      if (error.toString().includes("Cannot read properties of undefined")){
+        apiKeyInput.type = "text";
+        remindAPIKey();
+        apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
+      }
+        conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, noanswer);
+    });
+  enterPromoteButton.disabled = false;
+  promptInput.disabled = false;
+  startRecognitionButton.disabled = false;
   //return "I don't know what you are talking about";
 }
 
@@ -133,7 +155,7 @@ clearButton.addEventListener('click', () => {
   document.cookie = `conversation=`;
 });
 //right click the voiceAnswer to read everything answer
-voiceAnswer.addEventListener('contextmenu',function(e){
+voiceAnswer.addEventListener('contextmenu', function (e) {
   e.preventDefault();
   tts(conversationDisplay.textContent);
 });
@@ -184,7 +206,7 @@ promptInput.addEventListener('keyup', (e) => {
   }
 });
 //right click the startRecognitionButton to display cookies in alert
-startRecognitionButton.addEventListener('contextmenu', function (e){
+startRecognitionButton.addEventListener('contextmenu', function (e) {
   e.preventDefault();
   alert(document.cookie);
   console.log(document.cookie);
@@ -285,7 +307,7 @@ function selectLanguage() {
 }
 //load language from json file
 function loadLanguage(lang) {
-  var file = lang === "zh-CN" ? "cn.json" : "en.json";
+  var file = lang.startsWith('zh') ? "cn.json" : "en.json";
   try {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -317,6 +339,7 @@ function loadLanguage(lang) {
         bot = data.text2;
         waiting = data.text3;
         enterApiKey = data.text4;
+        noanswer = data.text5;
       }
     }
   } catch (e) {
