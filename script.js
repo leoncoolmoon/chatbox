@@ -242,12 +242,10 @@ startRecognitionButton.addEventListener('click', () => {
 });
 
 // Registering the service worker
-
 window.addEventListener('load', () => {
   //load cookies
-  const cookieValue = document.cookie.replace(/(?:(?:^|.*;\s*)api_key\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-  if (cookieValue) {
-    apiKeyInput.value = cookieValue;
+  if (!document.cookie) {
+    apiKeyInput.value = document.cookie.replace(/(?:(?:^|.*;\s*)api_key\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     settingDiv.style.display = "none";
     pitchValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)pitch\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     pitch.value = pitchValue.textContent;
