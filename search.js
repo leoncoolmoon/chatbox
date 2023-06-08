@@ -31,7 +31,7 @@ function addSearch(toolDiv, targetDiv) {
     //create the search tool button
     const searchToolButton = document.createElement('button');
     searchToolButton.setAttribute('id', 'searchToolButton');
-    searchToolButton.innerHTML = '<img src="search.png" title = "search" style="height:1em;"/>';
+    searchToolButton.innerHTML = '<img src="search.svg" title = "search" style="height:1em;"/>';
     searchToolButton.addEventListener('click', function () {
         //sth is wrong
         //searchList.style.display = searchList.style.display == 'flex'?'none':'flex';
@@ -40,7 +40,7 @@ function addSearch(toolDiv, targetDiv) {
         //add box-shadow: rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em; to uiDiv.style
         uiDiv.style.boxShadow = searchbar.style.display == 'flex' ? 'rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em' : 'none';
         //set innerHTML to "X" when fixed
-        this.innerHTML = searchbar.style.display == 'flex' ? '<img src="close.png" title = "close" style="height:1em;"/>' : '<img src="search.png" title="search" style="height:1em;"/>';
+        this.innerHTML = searchbar.style.display == 'flex' ? '<img src="close.svg" title = "close" style="height:1em;"/>' : '<img src="search.svg" title="search" style="height:1em;"/>';
         if (searchbar.style.display == 'flex') {
             uiDiv.style.left = parentDiv.offsetLeft + 'px';
             uiDiv.style.top = parentDiv.offsetTop + 'px';
