@@ -126,7 +126,7 @@ function chat(transcript) {
 }
 
 function tts(answer) {
-  if (voice || voiceAnswer.checked) {
+  if (voiceAnswer.checked) {
     const synth = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(answer);
     utterance.pitch = pitch.value;
