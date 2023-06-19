@@ -330,8 +330,9 @@ function loadLanguage(lang) {
         document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
         document.getElementById("showKeyLabel").innerHTML = data.label4;
         document.getElementById("showKey").setAttribute("placeholder", data.label4);
-        document.getElementById("speechSettingLabel").innerHTML = data.label5;
-        document.getElementById("rateLabel").innerHTML = data.label6;
+       document.getElementById("language-select").value = lang;
+ document.getElementById("speechSettingLabel").innerHTML = data.label5;
+        document.getElementById("rateLabel").innerHTML = data.label6；
         document.getElementById("pitchLabel").innerHTML = data.label7;
         you = data.text1;
         bot = data.text2;
