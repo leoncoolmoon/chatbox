@@ -94,6 +94,7 @@ function chat(transcript) {
       settingDiv.style.display = "none";
       settingButton.style.display = "block";
       //XSS protection
+      tts(answer);
       answer = answer.replace(/&/g, '&amp;');
       answer = answer.replace(/</g, '&lt;');
       answer = answer.replace(/>/g, '&gt;');
@@ -109,7 +110,7 @@ function chat(transcript) {
       conversationDisplay.scrollTo(0, 0);
       document.cookie = `historyList=${historyList}`;
       document.cookie = `conversation=${conversationDisplay.innerHTML}`;
-      tts(answer);
+     
     }).catch(error => {
       console.error(error.toString())
       if (error.toString().includes("Cannot read properties of undefined")){
@@ -126,11 +127,11 @@ function chat(transcript) {
 }
 
 function tts(answer) {
-  answer = answer.replace(/<br>/g, " ");
+  console.log(answer);
+  //answer = answer.replace(/<br>/g, " ");
   if (voiceAnswer.checked) {
     const synth = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(answer);
-    //console.log(answer);
     utterance.lang = languageSelect.value;
     utterance.pitch = pitch.value;
     utterance.rate = rate.value;
