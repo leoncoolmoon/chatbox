@@ -126,9 +126,12 @@ function chat(transcript) {
 }
 
 function tts(answer) {
+  answer = answer.replace(/<br>/g, " ");
   if (voiceAnswer.checked) {
     const synth = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(answer);
+    //console.log(answer);
+    utterance.lang = languageSelect.value;
     utterance.pitch = pitch.value;
     utterance.rate = rate.value;
     synth.speak(utterance);
