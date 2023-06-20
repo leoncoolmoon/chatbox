@@ -306,6 +306,7 @@ function selectLanguage() {
 //load language from json file
 function loadLanguage(lang) {
   var file = lang.startsWith('zh') ? "cn.json" : "en.json";
+  document.getElementById("language-select").value = lang;
   try {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function () {
@@ -330,9 +331,8 @@ function loadLanguage(lang) {
         document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
         document.getElementById("showKeyLabel").innerHTML = data.label4;
         document.getElementById("showKey").setAttribute("placeholder", data.label4);
-       document.getElementById("language-select").value = lang;
- document.getElementById("speechSettingLabel").innerHTML = data.label5;
-        document.getElementById("rateLabel").innerHTML = data.label6；
+        document.getElementById("speechSettingLabel").innerHTML = data.label5;
+        document.getElementById("rateLabel").innerHTML = data.label6;
         document.getElementById("pitchLabel").innerHTML = data.label7;
         you = data.text1;
         bot = data.text2;
@@ -341,9 +341,10 @@ function loadLanguage(lang) {
         noanswer = data.text5;
       }
     }
+    xhr.open("GET", file, true);
+  xhr.send();
   } catch (e) {
     console.log(e);
   };
-  xhr.open("GET", file, true);
-  xhr.send();
+  
 }
