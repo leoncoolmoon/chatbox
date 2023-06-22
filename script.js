@@ -210,10 +210,10 @@ function checkCtrlMark(data) {
   //the content is before the filterXSS
 
   if (data.substring(0, 6) == "[lang:") {
-    languageSelect.value = data.substring(6, data.length - 1);
+    languageSelect.value = data.substring(7, data.length - 2);
     return false;
   }else if(data.substring(0, 6) == "[summ:"){
-    past = data.substring(6, data.length - 1);
+    past = data.substring(7, data.length - 2);
     if(historyList[historyList.length].length+lastAnswer.length+past.length<5000){
       past = past+"/n/r+last Question: User:"+historyList[historyList.length]+"Assistant:"+lastAnswer;
     }
