@@ -338,7 +338,7 @@ startRecognitionButton.addEventListener('click', () => {
   // Requesting user permission for speech recognition
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
-    recognition.lang = 'auto';
+    recognition.lang = languageSelect.value;
   if (this.value != startTalk) {
     voice = true;
     recognition.addEventListener('result', e => {
