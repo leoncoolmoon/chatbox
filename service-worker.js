@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chatbot-pwa-cache-v1';
+const CACHE_NAME = 'chatbot-pwa-cache-v2';
 const urlsToCache = [
   '/',
   'index.html',
@@ -6,7 +6,12 @@ const urlsToCache = [
   'favicon-192x192.png',
   'favicon-512x512.png',
   'style.css',
-  'script.js'
+  'script.js',
+  'search.js',
+  'close.svg',
+  'search.svg',
+  'cn.json',
+  'en.json'
 ];
 
 self.addEventListener('install', event => {
