@@ -32,7 +32,7 @@ function show() {
   apiKeyInput.style.visibility = "visible";
 }
 // blink "off" state
-function hide() {
+function hideAPIDisp() {
   apiKeyInput.style.visibility = "hidden";
 }
 function remindAPIKey() {
@@ -46,8 +46,79 @@ function remindAPIKey() {
     setTimeout("show()", i + blinkDelay / 2);
   }
 }
+function summarize(text){
+  systemctrol(`summ:'please summarize into less then 500 words'][input:'${text}`);
+}
+var past = "";
+var delayQuestion = "";
+var lastAnswer = "";
+var bestAssistant = "You are a helpful assistant. You can help me by answering my questions. You can also ask me questions.";
+//the current conversation check length and summarize
+function iSaid(content) {
+  //add the control part of the prompt ie the past merries
+  var historymemory = conversationDisplay.textContent.replace("You", "User:").replace("Chatbot", "Assistant: ").replace("/n/r", "") ;
+  if(historymemory.length >8000 ){
+    summarize(historymemory);
+    delayQuestion = content;
+    return;
+  }
+  iSaidL(content,historymemory);
+}
+//the history part of the prompt
+function iSaidL(content,history){
+  var message = [
+    { "role": "system", "content": bestAssistant },
+    // {"role": "system", "content": historymemory },
+    {"role": "user", "content": history},
+    // {"role": "assistant", "content": "" },
+    { "role": "user", "content": content }];
+  chat(message);
+  //console.log(conversationDisplay.textContent.replace("You", "User:").replace("Chatbot", "Assistant: ").replace("/n/r", ""), '');
+}
+var programCore = "In this setting you are the program core, " +
+  "I will ask question in the format '[key:question],[options:'a','b'],[input:content]'" +
+  "the first part of the first section is the key for the prompt, the second part is the question i want you to answer, " +
+  "the second section is the available options, some question may not contain this section," +
+  "if there is option, answer with the one of the options," +
+  "if there is no option, answer with short and clear sentences." +
+  "the third section is the input section, the content provide the background information for the question, " +
+  "some question may not contain this section," +
+  "if there is no input section,  answer the question, with short and clear sentences" +
+  "you need return your answer with format '[key:answer]'. " +
+  "you need to fill the 'key' with the key i provided in the first part of the first section," +
+  "and fill the 'answer' with your answer. " +
+  "Also you need to give the exact answer without any extra words. ";
+function systemctrol(content) {
+  //add the control part of the prompt ie classifcation of the language
+  var message = [
+    { "role": "system", "content": programCore },
+    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'hello world']" },
+    { "role": "assistant", "content": "[lang:'en-GB']" },
+    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'你好']" },
+    { "role": "assistant", "content": "[lang:'zh-CN']" },
+    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'안녕하세요']" },
+    { "role": "assistant", "content": "[lang:'en-GB']" },
+    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[input:'hello 用中文怎么说']" },
+    { "role": "assistant", "content": "[lang:'zh-CN']" },
+    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'how to speek 你好 in english']" },
+    { "role": "assistant", "content": "[lang:'en-GB']" },
+    { "role": "user", "content": `[${content} ]` }];
+  chat(message);
+}
+//get the transcript from the message and filter the control part
+function getTranscript(message) {
+  var t = message.length - 1;
+  var transcript = message[t]
+  scrpitText = transcript.content;
+  if (transcript.role == "user"
+    && scrpitText[0] != "["
+    && scrpitText[scrpitText.length - 1] != "]") {
+    return scrpitText;
+  }
+  return "";
+}
 // Get the input value display and save it to a cookie
-function chat(transcript) {
+function chat(message) {
   //check if the api key is empty
   if (!apiKeyInput.value) {
     remindAPIKey();
@@ -60,14 +131,18 @@ function chat(transcript) {
   if (historyList.length > 10) {
     historyList.shift();
   }
-  console.log(Array.isArray(historyList));
-  historyList.push(transcript);
-  enterPromoteButton.disabled = true;
-  promptInput.disabled = true;
-  startRecognitionButton.disabled = true;
-  promptInput.value = "";
-  //display a waiting message
-  conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <div class = "userdiv">${you}:<p class = "userText"> ${transcript} </p></div><div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div>` + conversationDisplay.innerHTML;
+  var transcript = getTranscript(message);
+  if (transcript != "") {
+    console.log(Array.isArray(historyList));
+    historyList.push(transcript);
+    enterPromoteButton.disabled = true;
+    promptInput.disabled = true;
+    startRecognitionButton.disabled = true;
+    promptInput.value = "";
+    //message = [{ "role": "user", "content": transcript }];
+    //display a waiting message
+    conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <div class = "userdiv">${you}:<p class = "userText"> ${transcript} </p></div><div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div>` + conversationDisplay.innerHTML;
+  }
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const headers = {
     "Content-Type": "application/json",
@@ -75,8 +150,8 @@ function chat(transcript) {
   };
 
   const data = {
-    "model": "gpt-3.5-turbo",
-    "messages": [{ "role": "user", "content": transcript }],
+    "model": "gpt-3.5-turbo-16k",
+    "messages": message,
     "temperature": 0.7
   };
 
@@ -90,52 +165,86 @@ function chat(transcript) {
     .then(response => response.json())
     // .then(data => console.log(data))
     .then(data => {
+      //dealingfullOriginalReturn(data);
       var answer = data.choices[0].message.content;
       settingDiv.style.display = "none";
       settingButton.style.display = "block";
       //XSS protection
-      tts(answer);
-      answer = answer.replace(/&/g, '&amp;');
-      answer = answer.replace(/</g, '&lt;');
-      answer = answer.replace(/>/g, '&gt;');
-      answer = answer.replace(/"/g, '&quot;');
-      answer = answer.replace(/\\\\n/g, "+<br>+");
-      answer = answer.replace(/\\\\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
-      answer = answer.replace(/\//g, '&#47;');
-      answer = answer.replace(/'/g, '&#39;');
-      answer = answer.replace(/`/g, '&#96;');
-      answer = answer.replace(/\n/g, "<br>");
-      //replace the waiting message with the answer
-      conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, answer);
-      conversationDisplay.scrollTo(0, 0);
-      document.cookie = `historyList=${historyList}`;
-      document.cookie = `conversation=${conversationDisplay.innerHTML}`;
-     
+      if (checkCtrlMark(answer)) {
+        ttsAnswer(answer);
+        answer = filterXSS(answer);
+        //replace the waiting message with the answer
+        displayAnswer(answer);
+      };
+
     }).catch(error => {
       console.error(error.toString())
-      if (error.toString().includes("Cannot read properties of undefined")){
+      if (error.toString().includes("Cannot read properties of undefined")) {
         apiKeyInput.type = "text";
         remindAPIKey();
         apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
       }
-        conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, noanswer);
+      conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, noanswer);
     });
   enterPromoteButton.disabled = false;
   promptInput.disabled = false;
   startRecognitionButton.disabled = false;
   //return "I don't know what you are talking about";
 }
+function filterXSS(data) {
+  data = data.replace(/&/g, '&amp;');
+  data = data.replace(/</g, '&lt;');
+  data = data.replace(/>/g, '&gt;');
+  data = data.replace(/"/g, '&quot;');
+  data = data.replace(/\\\\n/g, "+<br>+");
+  data = data.replace(/\\\\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
+  data = data.replace(/\//g, '&#47;');
+  data = data.replace(/'/g, '&#39;');
+  data = data.replace(/`/g, '&#96;');
+  data = data.replace(/\n/g, "<br>");
+  return data;
+}
+function checkCtrlMark(data) {
 
-function tts(answer) {
+  //filter out the marked return for system ctrl without display, will return false
+  //the content is before the filterXSS
+
+  if (data.substring(0, 6) == "[lang:") {
+    languageSelect.value = data.substring(6, data.length - 1);
+    return false;
+  }else if(data.substring(0, 6) == "[summ:"){
+    past = data.substring(6, data.length - 1);
+    if(historyList[historyList.length].length+lastAnswer.length+past.length<5000){
+      past = past+"/n/r+last Question: User:"+historyList[historyList.length]+"Assistant:"+lastAnswer;
+    }
+    iSaidL(delayQuestion, past);
+    return false;
+  }
+  systemctrol("lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:" + data);
+  //pass the filter will return true
+  return true;
+}
+function displayAnswer(data) {
+  conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, data);
+  conversationDisplay.scrollTo(0, 0);
+  document.cookie = `historyList=${historyList}`;
+  document.cookie = `conversation=${conversationDisplay.innerHTML}`;
+  lastAnswer = data;
+}
+
+function ttsAnswer(answer) {
   console.log(answer);
   //answer = answer.replace(/<br>/g, " ");
+  const synth = window.speechSynthesis;
   if (voiceAnswer.checked) {
-    const synth = window.speechSynthesis;
     const utterance = new SpeechSynthesisUtterance(answer);
     utterance.lang = languageSelect.value;
     utterance.pitch = pitch.value;
     utterance.rate = rate.value;
     synth.speak(utterance);
+  }else{
+    //stop the voice
+    synth.cancel();
   }
 }
 //change language
@@ -153,6 +262,13 @@ rate.onchange = () => {
   rateValue.textContent = rate.value;
   document.cookie = `rate=${rate.value}`;
 };
+//add function when press ctrl +a in the page, all the conversationDisplay div content will be selected
+window.addEventListener('keydown', function (e) {
+  if (e.ctrlKey && e.key === "a") {
+    e.preventDefault();
+    window.getSelection().selectAllChildren(conversationDisplay);
+  }
+});
 //left click the clearButton to clear the conversation
 clearButton.addEventListener('click', () => {
   conversationDisplay.innerHTML = "";
@@ -161,7 +277,7 @@ clearButton.addEventListener('click', () => {
 //right click the voiceAnswer to read everything answer
 voiceAnswer.addEventListener('contextmenu', function (e) {
   e.preventDefault();
-  tts(conversationDisplay.textContent);
+  ttsAnswer(conversationDisplay.textContent);
 });
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
@@ -190,7 +306,7 @@ settingButton.addEventListener('click', () => {
 enterPromoteButton.addEventListener('click', () => {
   voice = false;
   const promote = promptInput.value;
-  chat(promote);
+  iSaid(promote);
 });
 //right click the enterPromoteButton to clear the history promote
 enterPromoteButton.addEventListener('contextmenu', function (e) {
@@ -203,7 +319,7 @@ promptInput.addEventListener('keyup', (e) => {
   if (e.key === "Enter") {
     voice = false;
     const promote = promptInput.value;
-    chat(promote);
+    iSaid(promote);
   }
   if (e.key === "Up") {
     promptInput.value = historyList[historyList.length - 1];
@@ -222,6 +338,7 @@ startRecognitionButton.addEventListener('click', () => {
   // Requesting user permission for speech recognition
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
+    recognition.lang = 'auto';
   if (this.value != startTalk) {
     voice = true;
     recognition.addEventListener('result', e => {
@@ -231,7 +348,7 @@ startRecognitionButton.addEventListener('click', () => {
         .join('');
       console.log(e);
       // Check if an API key has been provided
-      chat(transcript);
+      iSaid(transcript);
     });
     recognition.start();
     this.value = stopTalk;
@@ -304,7 +421,7 @@ function showAPIKEY() {
 }
 function selectLanguage() {
   var lang = navigator.language || navigator.userLanguage;
-  languageSelect.setAttribute("value", lang);
+  languageSelect.value = lang;
   loadLanguage(lang);
 }
 //load language from json file
@@ -346,9 +463,9 @@ function loadLanguage(lang) {
       }
     }
     xhr.open("GET", file, true);
-  xhr.send();
+    xhr.send();
   } catch (e) {
     console.log(e);
   };
-  
+
 }
