@@ -12,6 +12,7 @@ const rateValue = document.querySelector(".rate-value");
 const settingDiv = document.getElementById('setting-div');
 const clearButton = document.getElementById('clear-conversation-button');
 const saveButton = document.getElementById('save-conversation-button');
+const modelSelect = document.getElementById('model-select');
 const languageSelect = document.getElementById('language-select');
 var voice = false;
 var you = "You";
@@ -22,6 +23,7 @@ var startTalk = "Start Talk";
 var noanswer = "I have a mind block, please ask another question.";
 var stopTalk = "Stop Talk";
 var historyList = [];
+var model = "gpt-3.5-turbo-16k";
 //get the current time
 function getTimestamp() {
   const date = new Date();
@@ -46,77 +48,16 @@ function remindAPIKey() {
     setTimeout("show()", i + blinkDelay / 2);
   }
 }
-function summarize(text){
-  systemctrol(`summ:'please summarize into less then 500 words'][input:'${text}`);
-}
+
 var past = "";
 var delayQuestion = "";
 var lastAnswer = "";
 var bestAssistant = "You are a helpful assistant. You can help me by answering my questions. You can also ask me questions.";
-//the current conversation check length and summarize
-function iSaid(content) {
-  //add the control part of the prompt ie the past merries
-  var historymemory = conversationDisplay.textContent.replace("You", "User:").replace("Chatbot", "Assistant: ").replace("/n/r", "") ;
-  if(historymemory.length >8000 ){
-    summarize(historymemory);
-    delayQuestion = content;
-    return;
-  }
-  iSaidL(content,historymemory);
-}
-//the history part of the prompt
-function iSaidL(content,history){
-  var message = [
-    { "role": "system", "content": bestAssistant },
-    // {"role": "system", "content": historymemory },
-    {"role": "user", "content": history},
-    // {"role": "assistant", "content": "" },
-    { "role": "user", "content": content }];
-  chat(message);
-  //console.log(conversationDisplay.textContent.replace("You", "User:").replace("Chatbot", "Assistant: ").replace("/n/r", ""), '');
-}
-var programCore = "In this setting you are the program core, " +
-  "I will ask question in the format '[key:question],[options:'a','b'],[input:content]'" +
-  "the first part of the first section is the key for the prompt, the second part is the question i want you to answer, " +
-  "the second section is the available options, some question may not contain this section," +
-  "if there is option, answer with the one of the options," +
-  "if there is no option, answer with short and clear sentences." +
-  "the third section is the input section, the content provide the background information for the question, " +
-  "some question may not contain this section," +
-  "if there is no input section,  answer the question, with short and clear sentences" +
-  "you need return your answer with format '[key:answer]'. " +
-  "you need to fill the 'key' with the key i provided in the first part of the first section," +
-  "and fill the 'answer' with your answer. " +
-  "Also you need to give the exact answer without any extra words. ";
-function systemctrol(content) {
-  //add the control part of the prompt ie classifcation of the language
-  var message = [
-    { "role": "system", "content": programCore },
-    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'hello world']" },
-    { "role": "assistant", "content": "[lang:'en-GB']" },
-    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'你好']" },
-    { "role": "assistant", "content": "[lang:'zh-CN']" },
-    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'안녕하세요']" },
-    { "role": "assistant", "content": "[lang:'en-GB']" },
-    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[input:'hello 用中文怎么说']" },
-    { "role": "assistant", "content": "[lang:'zh-CN']" },
-    { "role": "user", "content": "[lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:'how to speek 你好 in english']" },
-    { "role": "assistant", "content": "[lang:'en-GB']" },
-    { "role": "user", "content": `[${content} ]` }];
-  chat(message);
-}
-//get the transcript from the message and filter the control part
-function getTranscript(message) {
-  var t = message.length - 1;
-  var transcript = message[t]
-  scrpitText = transcript.content;
-  if (transcript.role == "user"
-    && scrpitText[0] != "["
-    && scrpitText[scrpitText.length - 1] != "]") {
-    return scrpitText;
-  }
-  return "";
-}
+//get the Sting transcript from the message and filter the control part
+iSaid = (content) => {
+  chat([{ "role": "user", "content": content }]);
+  //message = [{ "role": "user", "content": message }];
+};
 // Get the input value display and save it to a cookie
 function chat(message) {
   //check if the api key is empty
@@ -131,18 +72,23 @@ function chat(message) {
   if (historyList.length > 10) {
     historyList.shift();
   }
-  var transcript = getTranscript(message);
-  if (transcript != "") {
-    console.log(Array.isArray(historyList));
-    historyList.push(transcript);
-    enterPromoteButton.disabled = true;
-    promptInput.disabled = true;
-    startRecognitionButton.disabled = true;
-    promptInput.value = "";
-    //message = [{ "role": "user", "content": transcript }];
-    //display a waiting message
-    conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <div class = "userdiv">${you}:<p class = "userText"> ${transcript} </p></div><div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div>` + conversationDisplay.innerHTML;
+  //add system message to the conversation
+  if (historyList.length == 0 || historyList[0].role != "system") {
+    historyList.unshift({ "role": "system", "content": bestAssistant });
   }
+
+  var transcript = message[message.length - 1].content;// for display
+
+  console.log(Array.isArray(historyList));
+  historyList.push(message[message.length - 1]);//(transcript);
+  enterPromoteButton.disabled = true;
+  promptInput.disabled = true;
+  startRecognitionButton.disabled = true;
+  promptInput.value = "";
+  //message = [{ "role": "user", "content": transcript }];
+  //display a waiting message
+  conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <div class = "userdiv">${you}:<p class = "userText"> ${transcript} </p></div><div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div>` + conversationDisplay.innerHTML;
+
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const headers = {
     "Content-Type": "application/json",
@@ -150,9 +96,8 @@ function chat(message) {
   };
 
   const data = {
-    //"model": "gpt-3.5-turbo-16k",
-    "model": "gpt-4-0613",
-    "messages": message,
+    "model": model,
+    "messages": historyList,
     "temperature": 0.7
   };
 
@@ -167,16 +112,17 @@ function chat(message) {
     // .then(data => console.log(data))
     .then(data => {
       //dealingfullOriginalReturn(data);
+      historyList.push(data.choices[0].message);
       var answer = data.choices[0].message.content;
       settingDiv.style.display = "none";
       settingButton.style.display = "block";
       //XSS protection
-      if (checkCtrlMark(answer)) {
-        ttsAnswer(answer);
-        answer = filterXSS(answer);
-        //replace the waiting message with the answer
-        displayAnswer(answer);
-      };
+
+      ttsAnswer(answer);
+      answer = filterXSS(answer);
+      //replace the waiting message with the answer
+      displayAnswer(answer);
+
 
     }).catch(error => {
       console.error(error.toString())
@@ -205,26 +151,7 @@ function filterXSS(data) {
   data = data.replace(/\n/g, "<br>");
   return data;
 }
-function checkCtrlMark(data) {
 
-  //filter out the marked return for system ctrl without display, will return false
-  //the content is before the filterXSS
-
-  if (data.substring(0, 6) == "[lang:") {
-    languageSelect.value = data.substring(7, data.length - 2);
-    return false;
-  }else if(data.substring(0, 6) == "[summ:"){
-    past = data.substring(7, data.length - 2);
-    if(historyList[historyList.length].length+lastAnswer.length+past.length<5000){
-      past = past+"/n/r+last Question: User:"+historyList[historyList.length]+"Assistant:"+lastAnswer;
-    }
-    iSaidL(delayQuestion, past);
-    return false;
-  }
-  systemctrol("lang:'is this Chinese? answer zh-CN only when it is chinese.'],[option:'en-GB','zh-CN'],[input:" + data);
-  //pass the filter will return true
-  return true;
-}
 function displayAnswer(data) {
   conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, data);
   conversationDisplay.scrollTo(0, 0);
@@ -243,7 +170,7 @@ function ttsAnswer(answer) {
     utterance.pitch = pitch.value;
     utterance.rate = rate.value;
     synth.speak(utterance);
-  }else{
+  } else {
     //stop the voice
     synth.cancel();
   }
@@ -252,7 +179,11 @@ function ttsAnswer(answer) {
 languageSelect.onchange = () => {
   loadLanguage(languageSelect.value); //load the chinese language
 }
-
+//change the model
+modelSelect.onchange = () => {
+  model = modelSelect.value;
+  document.cookie = `model=${model}`;
+}
 //change the voice's pitch and rate
 pitch.onchange = () => {
   pitchValue.textContent = pitch.value;
@@ -339,7 +270,7 @@ startRecognitionButton.addEventListener('click', () => {
   // Requesting user permission for speech recognition
   window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
-    recognition.lang = languageSelect.value;
+  recognition.lang = languageSelect.value;
   if (this.value != startTalk) {
     voice = true;
     recognition.addEventListener('result', e => {
@@ -374,7 +305,8 @@ window.addEventListener('load', () => {
     rateValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)rate\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     rate.value = rateValue.textContent;
     conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-    historyList = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",");
+    historyList = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
+    model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1");
   } else {
     settingDiv.style.display = "block";
   }
