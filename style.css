@@ -91,6 +91,7 @@ a:hover{
   color: rgb(0, 255, 149);
 } 
 #setting-div{
+  max-width: fit-content;
   display: block;
   outline: gray solid 1px;
   border-radius: 4px;
