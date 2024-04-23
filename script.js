@@ -16,6 +16,7 @@ const modelSelect = document.getElementById('model-select');
 const languageSelect = document.getElementById('language-select');
 const temperatureRange = document.getElementById('temperature');
 const temperatureValue = document.getElementById('temperatureValue');
+const updateButton = document.getElementById('update-button');
 var voice = false;
 var you = "You";
 var bot = "Chatbot";
@@ -92,9 +93,9 @@ function chat(message) {
   //message = [{ "role": "user", "content": transcript }];
   //display a waiting message
   conversationDisplay.innerHTML = `<div id = "conv${convIndex}" ondblclick="editQ(${convIndex})"><p class = "timeStemp" > ${getTimestamp()}  DoubleClick to change.</p>`
-                                  + `<div class = "userdiv"><br>${you}:<p class = "userText"> ${transcript} </p></div>`
-                                  + `<div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div></div>`
-                                  + conversationDisplay.innerHTML;
+    + `<div class = "userdiv"><br>${you}:<p class = "userText"> ${transcript} </p></div>`
+    + `<div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div></div>`
+    + conversationDisplay.innerHTML;
 
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const headers = {
@@ -165,7 +166,7 @@ function editQ(index) {
       }
       //remove any historyList content form this index
       historyList.splice(index, 1);
-       //clear the cookie 
+      //clear the cookie 
       document.cookie = `historyList=${historyList}`;
       if (changedPrompt != null && changedPrompt != "") {
         //re-ask the question
@@ -336,6 +337,17 @@ startRecognitionButton.addEventListener('click', () => {
   // Get the input value and save it to a cookie
   document.cookie = `api_key=${apiKeyInput.value}`;
 });
+//update-button to update the pwa
+updateButton.addEventListener('click', () => {
+
+  try{navigator.serviceWorker.getRegistration().then(function (registration) {
+    // 强制更新Service Worker
+    if (registration) {
+      registration.update();
+    }
+  });}catch(e){console.log(e);}
+
+});
 
 // Registering the service worker
 window.addEventListener('load', () => {
@@ -351,6 +363,11 @@ window.addEventListener('load', () => {
     historyList = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
     model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "gpt-3.5-turbo-16k";
     temperature = document.cookie.replace(/(?:(?:^|.*;\s*)temperature\s*\=\s*([^;]*).*$)|^.*$/, "$1") || 0.7;
+    try{navigator.serviceWorker.controller.postMessage(
+      { action: 'GET_CACHE_NAME' },
+      [new MessageChannel().port2]
+    );}catch(e){console.log(e);}
+  
   } else {
     settingDiv.style.display = "block";
   }
@@ -367,7 +384,11 @@ window.addEventListener('load', () => {
       .catch(error => {
         console.log('Service worker registration failed:', error);
       });
-
+    navigator.serviceWorker.getRegistration().then(function (registration) {
+      if (registration) {
+        registration.update();
+      }
+    });
   }
 });
 //detect browser's theme color change
@@ -375,7 +396,10 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', eve
   const newColorScheme = event.matches ? "dark" : "light";
   setColorMode(newColorScheme);
 });
-
+navigator.serviceWorker.addEventListener('message', (event) => {
+  console.log('Current CACHE_NAME:', event.data.cacheName);
+  document.getElementById('version').textContent = event.data.cacheName;
+});
 //detect browser's language change
 window.onlanguagechange = function () {
   selectLanguage();

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chatbot-pwa-cache-v2';
+const CACHE_NAME = 'chatbot-pwa-cache-v3';
 const urlsToCache = [
   '/',
   'index.html',
@@ -26,4 +26,23 @@ self.addEventListener('fetch', event => {
     caches.match(event.request)
       .then(response => response || fetch(event.request))
   );
+});
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
+    caches.keys().then(function (cacheNames) {
+      return Promise.all(
+        cacheNames.map(function (cacheName) {
+          if (cacheName != CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data.action === 'GET_CACHE_NAME') {
+    event.ports[0].postMessage({ cacheName: CACHE_NAME });
+  }
 });
