@@ -34,8 +34,8 @@
     <button id="save-conversation-button">Save Conversation</button><br>
     <div>
       <button id="setting-button">Setting</button>
-      <div id="setting-div">
-        <div><form>
+      <div id="setting-div" class = "boundary">
+        <div id = "modelSetting" class = "boundary" ><form >
           <label for="api-key-input" id = "apiKeyInputLabel">Enter your API key here</label>
           <input id="api-key-input" autocomplete="api-key-input" type="password" placeholder="Enter your API key here"/>
           <input type="checkbox" onclick="showAPIKEY()" placeholder="Show API key" id="showKey" ><label for="showKey" id ="showKeyLabel">Show API key</label>
@@ -45,7 +45,16 @@
             <option value="gpt-4-0613">gpt4</option>
             <option value="gpt-3.5-turbo" selected>gpt3.5</option>
           </select> 
+          <div>
+            <label for="temperature" id="temperatureLabel">Temperature</label><div id="temperatureValue">0.7</div>
+            <div class = "rangeDiv">
+              0 <input type="range" min="0" max="1" value="0.7" step="0.1" id="temperature" />1
+            </div>
+            
+            <div class="clearfix"></div>
+          </div>
         </form></div>
+        <div id = "ttsSetting" class = "boundary">
         <div>
           <label for="language-select" id = "languageSelectLabel">Select UI language,选择界面语言</label>
           <select id="language-select" title="select UI language,选择界面语言">
@@ -55,16 +64,23 @@
         </div>
         <div>
           <label id="speechSettingLabel">Speech setting</label><br>
-          <label for="rate" id="rateLabel">Rate</label><input type="range" min="0.5" max="2" value="0.5" step="0.1" id="rate" />
+          <label for="rate" id="rateLabel">Rate</label>
+          <div class = "rangeDiv">
+            0.5<input type="range" min="0.5" max="2" value="0.5" step="0.1" id="rate" />2
+          </div>
           <div class="rate-value">0.5</div>
           <div class="clearfix"></div>
         </div>
         <div>
-          <label for="pitch" id="pitchLabel">Pitch</label><input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />
+          <label for="pitch" id="pitchLabel">Pitch</label>
+          <div class = "rangeDiv">
+          0<input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />2
+          </div>
           <div class="pitch-value">1</div>
           <div class="clearfix"></div>
         </div>
       </div>
+    </div>
     </div>
     <script src="script.js"></script>
     <script src="search.js"></script>

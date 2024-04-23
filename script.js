@@ -14,6 +14,8 @@ const clearButton = document.getElementById('clear-conversation-button');
 const saveButton = document.getElementById('save-conversation-button');
 const modelSelect = document.getElementById('model-select');
 const languageSelect = document.getElementById('language-select');
+const temperatureRange = document.getElementById('temperature');
+const temperatureValue = document.getElementById('temperatureValue');
 var voice = false;
 var you = "You";
 var bot = "Chatbot";
@@ -24,6 +26,7 @@ var noanswer = "I have a mind block, please ask another question.";
 var stopTalk = "Stop Talk";
 var historyList = [];
 var model = "gpt-3.5-turbo-16k";
+var temperature = 0.7;
 //get the current time
 function getTimestamp() {
   const date = new Date();
@@ -85,9 +88,13 @@ function chat(message) {
   promptInput.disabled = true;
   startRecognitionButton.disabled = true;
   promptInput.value = "";
+  var convIndex = historyList.length - 1;
   //message = [{ "role": "user", "content": transcript }];
   //display a waiting message
-  conversationDisplay.innerHTML = `<p class = "timeStemp"> ${getTimestamp()}</p> <div class = "userdiv">${you}:<p class = "userText"> ${transcript} </p></div><div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div>` + conversationDisplay.innerHTML;
+  conversationDisplay.innerHTML = `<div id = "conv${convIndex}" ondblclick="editQ(${convIndex})"><p class = "timeStemp" > ${getTimestamp()}  DoubleClick to change.</p>`
+                                  + `<div class = "userdiv"><br>${you}:<p class = "userText"> ${transcript} </p></div>`
+                                  + `<div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div></div>`
+                                  + conversationDisplay.innerHTML;
 
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const headers = {
@@ -98,7 +105,7 @@ function chat(message) {
   const data = {
     "model": model,
     "messages": historyList,
-    "temperature": 0.7
+    "temperature": temperature
   };
 
 
@@ -137,6 +144,35 @@ function chat(message) {
   promptInput.disabled = false;
   startRecognitionButton.disabled = false;
   //return "I don't know what you are talking about";
+}
+//edit the question
+function editQ(index) {
+  if (historyList[index].role == "system") return;
+  if (historyList[index].role == "assistant") {
+    index = index - 1;
+  }
+  if (historyList[index].role == "user") {
+    var oldPrompt = historyList[index].content;
+    var changedPrompt = prompt("if you leave this empty this question history will be deleted from this position.", oldPrompt);
+    if (changedPrompt != oldPrompt) {
+      //remove any div in conversationDisplay.innerHTML which has the id >= "conv"+index
+      var maxIndex = historyList.length - 1;
+      for (var i = index; i < maxIndex; i++) {
+        var conv = document.getElementById("conv" + i);
+        if (conv != null) {
+          conv.remove();
+        }
+      }
+      //remove any historyList content form this index
+      historyList.splice(index, 1);
+       //clear the cookie 
+      document.cookie = `historyList=${historyList}`;
+      if (changedPrompt != null && changedPrompt != "") {
+        //re-ask the question
+        iSaid(changedPrompt);
+      }
+    }
+  }
 }
 function filterXSS(data) {
   data = data.replace(/&/g, '&amp;');
@@ -184,6 +220,11 @@ modelSelect.onchange = () => {
   model = modelSelect.value;
   document.cookie = `model=${model}`;
 }
+//change the temperature
+temperatureRange.onchange = () => {
+  temperatureValue.textContent = temperatureRange.value;
+  temperature = temperatureRange.value;
+};
 //change the voice's pitch and rate
 pitch.onchange = () => {
   pitchValue.textContent = pitch.value;
@@ -309,6 +350,7 @@ window.addEventListener('load', () => {
     conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     historyList = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
     model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "gpt-3.5-turbo-16k";
+    temperature = document.cookie.replace(/(?:(?:^|.*;\s*)temperature\s*\=\s*([^;]*).*$)|^.*$/, "$1") || 0.7;
   } else {
     settingDiv.style.display = "block";
   }

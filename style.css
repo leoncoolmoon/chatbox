@@ -1,31 +1,36 @@
 body {
   font-family: sans-serif;
   text-shadow: 0.05em 0.05em 0.025em rgba(0, 0, 0, 0.5);
-  overscroll-behavior-y: contain; 
+  overscroll-behavior-y: contain;
 }
+
 div.userdiv {
-    text-align: right;
+  text-align: right;
 }
+
 p.timeStemp {
-    font-size: xx-small;
+  font-size: xx-small;
 }
+
 p.userText {
-    font-size: 1em;
-    text-align: right;
-    border-radius: 8px 0px 8px 8px;
-    background: #4CAF50;
-    padding: 0.5em;
-    text-shadow: rgba(0, 0, 0, 0.5) 0.05em 0.05em 0.1em;
-    color: white;
+  font-size: 1em;
+  text-align: right;
+  border-radius: 8px 0px 8px 8px;
+  background: #4CAF50;
+  padding: 0.5em;
+  text-shadow: rgba(0, 0, 0, 0.5) 0.05em 0.05em 0.1em;
+  color: white;
 }
+
 p.botText {
-    font-size: 1em;
-    padding: 0.5em;
-    background: #242526;
-    border-radius: 0px 8px 8px 8px;
-    text-shadow: #726f6f 0.05em 0.05em 0.1em;
-    color:white;
-  }
+  font-size: 1em;
+  padding: 0.5em;
+  background: #242526;
+  border-radius: 0px 8px 8px 8px;
+  text-shadow: #726f6f 0.05em 0.05em 0.1em;
+  color: white;
+}
+
 input {
   padding: 8px;
   border-radius: 4px;
@@ -33,6 +38,7 @@ input {
   margin-right: 8px;
   width: -webkit-fill-available;
 }
+
 select {
   padding: 8px;
   border-radius: 4px;
@@ -40,6 +46,7 @@ select {
   margin-right: 8px;
   width: -webkit-fill-available;
 }
+
 button {
   padding: 8px 16px;
   border-radius: 4px;
@@ -53,6 +60,7 @@ button {
 button:hover {
   background-color: #3e8e41;
 }
+
 #button {
   padding: 8px 16px;
   border-radius: 4px;
@@ -66,6 +74,7 @@ button:hover {
 #button:hover {
   background-color: #3e8e41;
 }
+
 #conversation-display {
   margin-top: 16px;
   padding: 8px;
@@ -78,25 +87,44 @@ button:hover {
 #conversation-display p {
   margin: 8px 0;
 }
-a:link{
+
+a:link {
   text-decoration: none;
   color: #4caf50;
 }
-a:visited{
+
+a:visited {
   text-decoration: none;
   color: #71a80a;
 }
-a:hover{
+
+a:hover {
   text-decoration: none;
   color: rgb(0, 255, 149);
-} 
-#setting-div{
+}
+
+.boundary {
   max-width: fit-content;
   display: block;
   outline: gray solid 1px;
   border-radius: 4px;
   padding: 0.5em;
+  margin: 0.5em;
 }
+
 input[type="checkbox" i] {
-    width: auto;
-  }
+  width: auto;
+}
+
+input[type="range" i] {
+  margin:2vw;
+}
+
+.rangeDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#temperatureValue {
+  text-align: center;
+}
