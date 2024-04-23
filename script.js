@@ -205,6 +205,8 @@ window.addEventListener('keydown', function (e) {
 clearButton.addEventListener('click', () => {
   conversationDisplay.innerHTML = "";
   document.cookie = `conversation=`;
+  historyList = [];
+  document.cookie = `historyList=`;
 });
 //right click the voiceAnswer to read everything answer
 voiceAnswer.addEventListener('contextmenu', function (e) {
