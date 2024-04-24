@@ -17,6 +17,7 @@ const languageSelect = document.getElementById('language-select');
 const temperatureRange = document.getElementById('temperature');
 const temperatureValue = document.getElementById('temperatureValue');
 const updateButton = document.getElementById('update-button');
+const settingDivL = document.getElementById('settingDiv');
 var voice = false;
 var you = "You";
 var bot = "Chatbot";
@@ -466,7 +467,7 @@ function loadLanguage(lang) {
         clearButton.textContent = data.button3;
         saveButton.textContent = data.button4;
         settingButton.textContent = data.button5;
-
+        settingDivL.innerHTML = data.button5;
         promptInput.setAttribute("placeholder", data.label1);
         document.getElementById("inputLabel").innerHTML = data.label1;
         document.getElementById("voiceLabel").innerHTML = data.label2;
@@ -478,6 +479,8 @@ function loadLanguage(lang) {
         document.getElementById("speechSettingLabel").innerHTML = data.label5;
         document.getElementById("rateLabel").innerHTML = data.label6;
         document.getElementById("pitchLabel").innerHTML = data.label7;
+        document.getElementById("languageSelectLabel").innerHTML = data.label8;
+        document.getElementById("modelSelectLabel").innerHTML = data.label9;
         you = data.text1;
         bot = data.text2;
         waiting = data.text3;
