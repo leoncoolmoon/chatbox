@@ -172,7 +172,7 @@ function editQ(index) {
       //remove any historyList content form this index
       historyList.splice(index, 1);
       //clear the cookie 
-      document.cookie = `historyList=${historyList}`;
+      document.cookie = `historyList=${JSON.stringify(historyList)}`;
       if (changedPrompt != null && changedPrompt != "") {
         //re-ask the question
         iSaid(changedPrompt);
@@ -197,9 +197,11 @@ function filterXSS(data) {
 function displayAnswer(data) {
   conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, data);
   conversationDisplay.scrollTo(0, 0);
-  document.cookie = `historyList=${historyList}`;
+  document.cookie = `historyList=${JSON.stringify(historyList)}`;
   document.cookie = `conversation=${conversationDisplay.innerHTML}`;
   lastAnswer = data;
+  historyDisplayIndex = historyList.length;
+  tempHistory = "";
 }
 
 function ttsAnswer(answer) {
@@ -317,6 +319,7 @@ promptInput.addEventListener('keyup', (e) => {
       promptInput.value = tempHistory;
     } else {
       promptInput.value = historyList[historyDisplayIndex].content;
+      promptInput.selectionStart = 0; 
     }
   }
 });
@@ -381,7 +384,9 @@ window.addEventListener('load', () => {
     rateValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)rate\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     rate.value = rateValue.textContent;
     conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-    historyList = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
+    var historyListj = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
+    //change historyList from string to array
+    historyList = historyListj.map(item => JSON.parse(item));
     model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "gpt-3.5-turbo-16k";
     temperature = document.cookie.replace(/(?:(?:^|.*;\s*)temperature\s*\=\s*([^;]*).*$)|^.*$/, "$1") || 0.7;
     try {
