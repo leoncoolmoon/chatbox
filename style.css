@@ -117,7 +117,7 @@ input[type="checkbox" i] {
 }
 
 input[type="range" i] {
-  margin:2vw;
+  margin: 0.5em;
 }
 
 .rangeDiv {
