@@ -385,24 +385,31 @@ window.addEventListener('load', () => {
     rate.value = rateValue.textContent;
     var expired = new Date(document.cookie.replace(/(?:(?:^|.*;\s*)expires\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
     //cookieDate is one year before the expired date
-    var cookieDate = new Date();
+    var cookieDate = expired;
     cookieDate.setFullYear(expired.getFullYear() - 1);
     var historyListj = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     //change historyList from string to array
-    historyList = JSON.parse(historyListj);
+    historyList =  JSON.parse(historyListj);
     //conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     //convert historyList to conversationDisplay
-    for (var i = 0; i < historyList.length; i++) {
-      var convIndex = i;
+    for (var i = 0;  i < historyList.length; i = i+ 2) {
       var role = historyList[i].role;
-      var content = historyList[i].content;
-      if (role != "system") {
-        conversationDisplay.innerHTML = `<div id = "conv${role == "assistant" ? convIndex - 1 : convIndex}" ondblclick="editQ(${role == "assistant" ? convIndex - 1 : convIndex})"><p class = "timeStemp" > ${getTimestamp(cookieDate)}  DoubleClick to change.</p>`
-          + `<div class = ${role == "assistant" ? "botdiv" : "userdiv"}><br>${role == "assistant" ? bot : you}:<p class = ${role == "assistant" ? "botText" : "userText"}> ${content} </p></div></div>`
+      if (role == "assistant" && i - 1 > 0 ) {
+        i = i - 1;
+        role = historyList[i].role;
+      }
+      if (role =="user" ){
+        if ( i+ 1 < historyList.length ) {
+        conversationDisplay.innerHTML = `<div id = "conv${i}" ondblclick="editQ(${i})"><p class = "timeStemp" > ${getTimestamp(cookieDate)}  DoubleClick to change.</p>`
+          + `<div class = "userdiv"><br>${you}:<p class = "userText"> ${historyList[i].content} </p></div>`
+          + `<div class = "botdiv"><br>${bot}:<p class = "botText"> ${historyList[i+1].content} </p></div></div>`
           + conversationDisplay.innerHTML;
+        }else{
+          iSaid(historyList[i].content);
+        }
       }
     }
-    model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "gpt-3.5-turbo-16k";
+    model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "gpt-3.5-turbo";
     temperature = document.cookie.replace(/(?:(?:^|.*;\s*)temperature\s*\=\s*([^;]*).*$)|^.*$/, "$1") || 0.7;
     try {
       navigator.serviceWorker.controller.postMessage(
