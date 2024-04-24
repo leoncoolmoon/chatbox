@@ -134,11 +134,11 @@ input[type="range" i] {
   align-items: center;
   margin: 0.5em;
   width: 100%;
-  background: #000;
+  background: white;
   padding: 0.5em;
   font-family: sans-serif;
-  text-shadow: 0.05em 0.05em 0.025em rgba(0, 0, 0, 0.5);
-  color:white;
+  text-shadow: 0.05em 0.05em 0.025em rgba(128, 128, 128, 0.5);
+  color:black;
   font-size: medium;
   height: 12vh;
   border-radius: 5px;

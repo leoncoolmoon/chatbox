@@ -307,7 +307,7 @@ promptInput.addEventListener('keyup', (e) => {
     iSaid(promote);
   }
   // the cursor is at the beginning of the promptInput and press the up key to display the last history
-  if (e.key === "Up" && promptInput.selectionStart == 0 && historyDisplayIndex >= 0) {
+  if (e.key === "ArrowUp" && promptInput.selectionStart == 0 && historyDisplayIndex >= 0) {
     e.preventDefault();
     if (historyDisplayIndex == historyList.length) {
       tempHistory = promptInput.value;
@@ -432,12 +432,14 @@ window.onlanguagechange = function () {
 function setColorMode(colorScheme) {
   document.body.style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
   document.body.style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
-  const inputElements = document.querySelectorAll('input[type="text"]');
+  const inputElements = document.querySelectorAll('select, input, textarea');
   // Loop through each input element and change its color
   for (let i = 0; i < inputElements.length; i++) {
     inputElements[i].style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
     inputElements[i].style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
   }
+ // promptInput.style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
+ // promptInput.style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
 }
 
 function showAPIKEY() {
