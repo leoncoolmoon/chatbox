@@ -376,7 +376,7 @@ startRecognitionButton.addEventListener('click', () => {
 // Registering the service worker
 window.addEventListener('load', () => {
   //load cookies
-  if (!document.cookie) {
+  if (document.cookie) {
     apiKeyInput.value = document.cookie.replace(/(?:(?:^|.*;\s*)api_key\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     settingDiv.style.display = apiKeyInput.value != "" ? "none" : "block";
     pitchValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)pitch\s*\=\s*([^;]*).*$)|^.*$/, "$1");
