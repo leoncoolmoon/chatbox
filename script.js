@@ -29,13 +29,9 @@ var stopTalk = "Stop Talk";
 var historyList = [];
 var model = "gpt-3.5-turbo-16k";
 var temperature = 0.7;
-//for cookie
-let cookieDate = new Date();
-    cookieDate.setFullYear(cookieDate.getFullYear() + 1); // Cookie will expire in 1 year
-    document.cookie = `expires=${cookieDate.toUTCString()}; path=/`;
-//get the current time
-function getTimestamp() {
-  const date = new Date();
+
+//get the time stemp from the date
+function getTimestamp(date) {
   //return YYYY-MM-DD HH:MM:SS
   return `[${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}] `;
 }
@@ -97,7 +93,7 @@ function chat(message) {
   var convIndex = historyList.length - 1;
   //message = [{ "role": "user", "content": transcript }];
   //display a waiting message
-  conversationDisplay.innerHTML = `<div id = "conv${convIndex}" ondblclick="editQ(${convIndex})"><p class = "timeStemp" > ${getTimestamp()}  DoubleClick to change.</p>`
+  conversationDisplay.innerHTML = `<div id = "conv${convIndex}" ondblclick="editQ(${convIndex})"><p class = "timeStemp" > ${getTimestamp(new Date())}  DoubleClick to change.</p>`
     + `<div class = "userdiv"><br>${you}:<p class = "userText"> ${transcript} </p></div>`
     + `<div class = "botdiv"><br>${bot}:<p class = "botText"> ${waiting}</p></div></div>`
     + conversationDisplay.innerHTML;
@@ -198,8 +194,12 @@ function displayAnswer(data) {
   conversationDisplay.innerHTML = conversationDisplay.innerHTML.replace(waiting, data);
   conversationDisplay.scrollTo(0, 0);
   document.cookie = `historyList=${JSON.stringify(historyList)}`;
-  document.cookie = `conversation=${conversationDisplay.innerHTML}`;
-  lastAnswer = data;
+  document.cookie = `conversation=""`;
+  //for cookie
+  let cookieDate = new Date();
+  cookieDate.setFullYear(cookieDate.getFullYear() + 1); // Cookie will expire in 1 year
+  document.cookie = `expires=${cookieDate.toUTCString()}; path=/`;
+
   historyDisplayIndex = historyList.length;
   tempHistory = "";
 }
@@ -267,7 +267,7 @@ saveButton.addEventListener('click', () => {
   const link = document.createElement("a");
   const file = new Blob([conversationDisplay.textContent], { type: 'text/plain ; charset=utf-8' });
   link.href = URL.createObjectURL(file);
-  link.download = "chatBox_" + getTimestamp() + ".txt";
+  link.download = "chatBox_" + getTimestamp(new Date()) + ".txt";
   link.click();
   URL.revokeObjectURL(link.href);
 });
@@ -319,7 +319,7 @@ promptInput.addEventListener('keyup', (e) => {
       promptInput.value = tempHistory;
     } else {
       promptInput.value = historyList[historyDisplayIndex].content;
-      promptInput.selectionStart = 0; 
+      promptInput.selectionStart = 0;
     }
   }
 });
@@ -383,10 +383,25 @@ window.addEventListener('load', () => {
     pitch.value = pitchValue.textContent;
     rateValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)rate\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     rate.value = rateValue.textContent;
-    conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    var expired = new Date(document.cookie.replace(/(?:(?:^|.*;\s*)expires\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+    //cookieDate is one year before the expired date
+    var cookieDate = new Date();
+    cookieDate.setFullYear(expired.getFullYear() - 1);
     var historyListj = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
     //change historyList from string to array
     historyList = historyListj.map(item => JSON.parse(item));
+    //conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    //convert historyList to conversationDisplay
+    for (var i = 0; i < historyList.length; i++) {
+      var convIndex = i;
+      var role = historyList[i].role;
+      var content = historyList[i].content;
+      if (role != "system") {
+        conversationDisplay.innerHTML = `<div id = "conv${role == "assistant" ? convIndex - 1 : convIndex}" ondblclick="editQ(${role == "assistant" ? convIndex - 1 : convIndex})"><p class = "timeStemp" > ${getTimestamp(cookieDate)}  DoubleClick to change.</p>`
+          + `<div class = ${role == "assistant" ? "botdiv" : "userdiv"}><br>${role == "assistant" ? bot : you}:<p class = ${role == "assistant" ? "botText" : "userText"}> ${content} </p></div></div>`
+          + conversationDisplay.innerHTML;
+      }
+    }
     model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "gpt-3.5-turbo-16k";
     temperature = document.cookie.replace(/(?:(?:^|.*;\s*)temperature\s*\=\s*([^;]*).*$)|^.*$/, "$1") || 0.7;
     try {
@@ -443,8 +458,8 @@ function setColorMode(colorScheme) {
     inputElements[i].style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
     inputElements[i].style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
   }
- // promptInput.style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
- // promptInput.style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
+  // promptInput.style.color = colorScheme === "dark" ? "#ffffff" : "#000000";
+  // promptInput.style.backgroundColor = colorScheme === "dark" ? "#000000" : "#ffffff";
 }
 
 function showAPIKEY() {
