@@ -80,7 +80,7 @@ button:hover {
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
-  height: 300px;
+  height: 35vh;
   overflow-y: scroll;
 }
 
@@ -127,4 +127,18 @@ input[type="range" i] {
 }
 #temperatureValue {
   text-align: center;
+}
+#prompt-input{
+  /* display: flex; */
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.5em;
+  width: 100%;
+  background: #000;
+  padding: 0.5em;
+  font-family: sans-serif;
+  text-shadow: 0.05em 0.05em 0.025em rgba(0, 0, 0, 0.5);
+  color:white;
+  font-size: medium;
+  height: 12vh;
 }

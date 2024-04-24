@@ -28,6 +28,10 @@ var stopTalk = "Stop Talk";
 var historyList = [];
 var model = "gpt-3.5-turbo-16k";
 var temperature = 0.7;
+//for cookie
+let cookieDate = new Date();
+    cookieDate.setFullYear(cookieDate.getFullYear() + 1); // Cookie will expire in 1 year
+    document.cookie = `expires=${cookieDate.toUTCString()}; path=/`;
 //get the current time
 function getTimestamp() {
   const date = new Date();
@@ -266,11 +270,12 @@ saveButton.addEventListener('click', () => {
 });
 //left click the apiModifyButton to modify the api key
 settingButton.addEventListener('click', () => {
-  if (settingDiv.style.display == "none")
+  if (settingDiv.style.display == "none") {
     settingDiv.style.display = "block";
-  else
+  } else {
     settingDiv.style.display = "none";
-  document.cookie = `api_key=${apiKeyInput.value}`;
+    document.cookie = `api_key=${apiKeyInput.value};`;
+  }
 });
 //right click the settingButton to display/hide the languageSelect
 /*settingButton.addEventListener('contextmenu', function (e) {
@@ -290,15 +295,28 @@ enterPromoteButton.addEventListener('contextmenu', function (e) {
   historyList = [];
   return false;
 });
+
+var historyDisplayIndex = historyList.length;
+var tempHistory = "";
 //when press enter to promote the chatbot
 promptInput.addEventListener('keyup', (e) => {
-  if (e.key === "Enter") {
+  if (e.key === "Enter" && e.ctrlKey) {
     voice = false;
     const promote = promptInput.value;
     iSaid(promote);
   }
-  if (e.key === "Up") {
-    promptInput.value = historyList[historyList.length - 1];
+  // the cursor is at the beginning of the promptInput and press the up key to display the last history
+  if (e.key === "Up" && promptInput.selectionStart == 0 && historyDisplayIndex >= 0) {
+    e.preventDefault();
+    if (historyDisplayIndex == historyList.length) {
+      tempHistory = promptInput.value;
+    }
+    historyDisplayIndex = historyDisplayIndex - 1 > 0 ? historyDisplayIndex - 1 : historyList.length;
+    if (historyDisplayIndex == historyList.length) {
+      promptInput.value = tempHistory;
+    } else {
+      promptInput.value = historyList[historyDisplayIndex].content;
+    }
   }
 });
 //right click the startRecognitionButton to display cookies in alert
@@ -338,23 +356,25 @@ startRecognitionButton.addEventListener('click', () => {
   document.cookie = `api_key=${apiKeyInput.value}`;
 });
 //update-button to update the pwa
-updateButton.addEventListener('click', () => {
+// updateButton.addEventListener('click', () => {
 
-  try{navigator.serviceWorker.getRegistration().then(function (registration) {
-    // 强制更新Service Worker
-    if (registration) {
-      registration.update();
-    }
-  });}catch(e){console.log(e);}
+//   try {
+//     navigator.serviceWorker.getRegistration().then(function (registration) {
+//       // 强制更新Service Worker
+//       if (registration) {
+//         registration.update();
+//       }
+//     });
+//   } catch (e) { console.log(e); }
 
-});
+// });
 
 // Registering the service worker
 window.addEventListener('load', () => {
   //load cookies
   if (!document.cookie) {
     apiKeyInput.value = document.cookie.replace(/(?:(?:^|.*;\s*)api_key\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-    settingDiv.style.display = "none";
+    settingDiv.style.display = apiKeyInput.value != "" ? "none" : "block";
     pitchValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)pitch\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     pitch.value = pitchValue.textContent;
     rateValue.textContent = document.cookie.replace(/(?:(?:^|.*;\s*)rate\s*\=\s*([^;]*).*$)|^.*$/, "$1");
@@ -363,11 +383,13 @@ window.addEventListener('load', () => {
     historyList = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
     model = document.cookie.replace(/(?:(?:^|.*;\s*)model\s*\=\s*([^;]*).*$)|^.*$/, "$1") || "gpt-3.5-turbo-16k";
     temperature = document.cookie.replace(/(?:(?:^|.*;\s*)temperature\s*\=\s*([^;]*).*$)|^.*$/, "$1") || 0.7;
-    try{navigator.serviceWorker.controller.postMessage(
-      { action: 'GET_CACHE_NAME' },
-      [new MessageChannel().port2]
-    );}catch(e){console.log(e);}
-  
+    try {
+      navigator.serviceWorker.controller.postMessage(
+        { action: 'GET_CACHE_NAME' },
+        [new MessageChannel().port2]
+      );
+    } catch (e) { console.log(e); }
+
   } else {
     settingDiv.style.display = "block";
   }
