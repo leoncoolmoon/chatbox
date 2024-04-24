@@ -387,9 +387,9 @@ window.addEventListener('load', () => {
     //cookieDate is one year before the expired date
     var cookieDate = new Date();
     cookieDate.setFullYear(expired.getFullYear() - 1);
-    var historyListj = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1").split(",").filter(item => item);
+    var historyListj = document.cookie.replace(/(?:(?:^|.*;\s*)historyList\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     //change historyList from string to array
-    historyList = historyListj.map(item => JSON.parse(item));
+    historyList = JSON.parse(historyListj);
     //conversationDisplay.innerHTML = document.cookie.replace(/(?:(?:^|.*;\s*)conversation\s*\=\s*([^;]*).*$)|^.*$/, "$1");
     //convert historyList to conversationDisplay
     for (var i = 0; i < historyList.length; i++) {
