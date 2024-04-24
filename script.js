@@ -469,7 +469,7 @@ function loadLanguage(lang) {
         settingButton.textContent = data.button5;
         settingDivL.innerHTML = data.button5;
         promptInput.setAttribute("placeholder", data.label1);
-        document.getElementById("inputLabel").innerHTML = data.label1;
+        // document.getElementById("inputLabel").innerHTML = data.label1;
         document.getElementById("voiceLabel").innerHTML = data.label2;
         voiceAnswer.setAttribute("placeholder", data.label2);
         apiKeyInput.setAttribute("placeholder", data.label3);
