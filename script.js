@@ -156,7 +156,7 @@ function editQ(index) {
   if (historyList[index].role == "user") {
     var oldPrompt = historyList[index].content;
     var changedPrompt = prompt("if you leave this empty this question history will be deleted from this position.", oldPrompt);
-    if (changedPrompt != oldPrompt) {
+    if (changedPrompt != oldPrompt && changedPrompt != null) {
       //remove any div in conversationDisplay.innerHTML which has the id >= "conv"+index
       var maxIndex = historyList.length - 1;
       for (var i = index; i < maxIndex; i++) {
@@ -265,7 +265,7 @@ voiceAnswer.addEventListener('contextmenu', function (e) {
 //left click the saveButton to save the conversation
 saveButton.addEventListener('click', () => {
   const link = document.createElement("a");
-  const file = new Blob([conversationDisplay.textContent], { type: 'text/plain ; charset=utf-8' });
+  const file = new Blob([conversationDisplay.innerText], { type: 'text/plain ; charset=utf-8' });
   link.href = URL.createObjectURL(file);
   link.download = "chatBox_" + getTimestamp(new Date()) + ".txt";
   link.click();
@@ -319,7 +319,7 @@ promptInput.addEventListener('keyup', (e) => {
       promptInput.value = tempHistory;
     } else {
       promptInput.value = historyList[historyDisplayIndex].content;
-      promptInput.selectionStart = 0;
+      promptInput.setSelectionRange(0, 0);
     }
   }
 });
