@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chatbot-pwa-cache-v4.2';
+const CACHE_NAME = 'chatbot-pwa-cache-v5.0';
 const urlsToCache = [
   '/',
   'index.html',
@@ -8,6 +8,8 @@ const urlsToCache = [
   'style.css',
   'script.js',
   'search.js',
+  'storage.js',
+  'migration.js',
   'close.svg',
   'search.svg',
   'cn.json',

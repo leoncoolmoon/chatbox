@@ -1,7 +1,111 @@
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --user-msg-bg: #4CAF50;
+  --bot-msg-bg: #242526;
+  --msg-text-color: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #ccc;
+  --button-bg: #4caf50;
+  --button-hover: #3e8e41;
+  --sidebar-bg: #f0f0f0;
+  --toolbar-bg: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="dark"] {
+  --bg-color: #000000;
+  --text-color: #ffffff;
+  --user-msg-bg: #2e7d32;
+  --bot-msg-bg: #1c1c1c;
+  --input-bg: #1c1c1c;
+  --input-border: #444;
+  --sidebar-bg: #1c1c1c;
+  --toolbar-bg: rgba(0, 0, 0, 0.5);
+}
+
 body {
   font-family: sans-serif;
   text-shadow: 0.05em 0.05em 0.025em rgba(0, 0, 0, 0.5);
   overscroll-behavior-y: contain;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app-container {
+  display: flex;
+  height: 100%;
+}
+
+#sidebar {
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--input-border);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s;
+}
+
+#sidebar-header {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--input-border);
+}
+
+#topic-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.topic-item {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--input-border);
+}
+
+.topic-item:hover {
+  background-color: var(--toolbar-bg);
+}
+
+.topic-item.active {
+  background-color: var(--button-bg);
+  color: white;
+}
+
+.tree-node {
+  padding: 5px;
+  border-radius: 4px;
+  margin: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-node:hover {
+  background-color: var(--toolbar-bg);
+}
+
+.tree-node.active {
+  background-color: var(--button-bg);
+  color: white;
+}
+
+.tree-node.selected {
+  outline: 2px solid #ffeb3b;
+  background-color: rgba(255, 235, 59, 0.2);
+}
+
+#main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 div.userdiv {
@@ -16,34 +120,35 @@ p.userText {
   font-size: 1em;
   text-align: right;
   border-radius: 8px 0px 8px 8px;
-  background: #4CAF50;
+  background: var(--user-msg-bg);
   padding: 0.5em;
   text-shadow: rgba(0, 0, 0, 0.5) 0.05em 0.05em 0.1em;
-  color: white;
+  color: var(--msg-text-color);
 }
 
 p.botText {
   font-size: 1em;
   padding: 0.5em;
-  background: #242526;
+  background: var(--bot-msg-bg);
   border-radius: 0px 8px 8px 8px;
   text-shadow: #726f6f 0.05em 0.05em 0.1em;
-  color: white;
+  color: var(--msg-text-color);
+}
+
+input, select, textarea {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  margin-right: 8px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
 }
 
 input {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  margin-right: 8px;
   width: -webkit-fill-available;
 }
 
 select {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  margin-right: 8px;
   width: -webkit-fill-available;
 }
 
@@ -51,35 +156,20 @@ button {
   padding: 8px 16px;
   border-radius: 4px;
   border: none;
-  background-color: #4caf50;
+  background-color: var(--button-bg);
   color: white;
   cursor: pointer;
   margin: 0.5em;
 }
 
 button:hover {
-  background-color: #3e8e41;
-}
-
-#button {
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  background-color: #4caf50;
-  color: white;
-  cursor: pointer;
-  margin: 0.5em;
-}
-
-#button:hover {
-  background-color: #3e8e41;
+  background-color: var(--button-hover);
 }
 
 #conversation-display {
-  /* margin-top: 16px; */
   padding: 8px;
   border-radius: 4px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   height: 40vh;
   overflow-y: scroll;
 }
@@ -129,16 +219,13 @@ input[type="range" i] {
   text-align: center;
 }
 #prompt-input{
-  /* display: flex; */
   justify-content: space-between;
   align-items: center;
   margin: 0.5em;
   width: 100%;
-  background: white;
   padding: 0.5em;
   font-family: sans-serif;
   text-shadow: 0.05em 0.05em 0.025em rgba(128, 128, 128, 0.5);
-  color:black;
   font-size: medium;
   height: 12vh;
   border-radius: 5px;
