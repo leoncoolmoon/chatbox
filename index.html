@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Chatbot PWA</title>
   <link rel="manifest" href="manifest.json">
@@ -18,133 +18,147 @@
   <div id="app-container">
     <div id="sidebar">
       <div id="sidebar-header">
-        <h3>Topics</h3>
+        <h3 id="topicsTitle">Topics</h3>
         <button id="new-topic-button">+</button>
       </div>
       <div id="topic-list"></div>
     </div>
+
     <div id="main-content">
-      <div style="display: ruby-text;">
-        <h2 id="titleHead">Chatbot PWA</h2> <a href="https://github.com/leoncoolmoon/chatbox/tree/main">github</a>
+      <div class="header-row">
+        <button id="menu-toggle" class="mobile-only">☰</button>
+        <h2 id="titleHead">Chatbot PWA</h2>
+        <button id="mobile-settings-button" class="mobile-only">⚙️</button>
       </div>
-      <div id="translater"></div>
-      <button id="start-recognition-button">Start Talk</button>
-      <input type="checkbox" id="voice" placeholder="Answer by voice"/><label for="voice" id="voiceLabel">Answer by voice</label><br>
-      <div style="display:flex; flex-direction: column; gap: 5px;">
-        <div style="display:flex; align-items: center;">
-          <textarea id="prompt-input" type="text" placeholder="Enter promot for ChatGPT"></textarea>
+
+      <div class="input-area">
+        <div class="control-row">
+          <button id="start-recognition-button">Start Talk</button>
+          <label class="checkbox-container">
+            <input type="checkbox" id="voice"/>
+            <span id="voiceLabel">Answer by voice</span>
+          </label>
+        </div>
+
+        <div class="prompt-container">
+          <textarea id="prompt-input" placeholder="Enter promot for ChatGPT"></textarea>
           <button id="enter-promot-button">Enter</button>
         </div>
-        <div style="display:flex; align-items: center; gap: 10px;">
-          <input type="file" id="file-upload" multiple style="width: auto;"/>
-          <div id="file-list" style="font-size: 12px; color: var(--text-color);"></div>
+
+        <div class="file-row">
+          <input type="file" id="file-upload" multiple/>
+          <div id="file-list"></div>
         </div>
       </div>
-      <div id='parentDiv' style="display: flex; gap: 10px;">
-        <div style="flex: 3; display: flex; flex-direction: column;">
-          <div id="toolbar"></div>
-          <div id="conversation-display"></div>
-        </div>
-        <div id="tree-panel" style="flex: 1; border: 1px solid var(--input-border); border-radius: 4px; overflow: auto; background: var(--sidebar-bg);">
-          <div id="tree-container"></div>
-        </div>
-        <div id="ads"></div>
+
+      <div id="chat-container">
+        <div id="toolbar"></div>
+        <div id="conversation-display"></div>
       </div>
-      <div>
-        <div style="display: ruby-text;">
-          <div>
-            <button id="clear-conversation-button">Clear Conversation</button>
-            <button id="save-conversation-button">Save Conversation</button>
-    <button id="export-history-button">Export History</button>
-    <button id="import-history-button">Import History</button>
-    <input type="file" id="history-import-file" style="display:none;"/>
+
+      <div class="action-buttons">
+        <button id="clear-conversation-button">Clear</button>
+        <button id="save-conversation-button">Save</button>
+        <button id="export-history-button">Export History</button>
+        <button id="import-history-button">Import History</button>
+        <input type="file" id="history-import-file" style="display:none;"/>
+      </div>
+    </div>
+
+    <div id="right-panel">
+      <div id="tree-section">
+        <h4 id="treeTitle">Conversation Tree</h4>
+        <div id="tree-container"></div>
+      </div>
+
+      <div id="settings-section">
+        <div class="section-header">
+          <h4 id="settingDiv">Settings</h4>
+          <button id="close-settings" class="mobile-only">×</button>
+        </div>
+
+        <div id="modelSetting" class="setting-group">
+          <label for="api-key-input" id="apiKeyInputLabel">API Key</label>
+          <div class="input-with-toggle">
+            <input id="api-key-input" type="password"/>
+            <button type="button" id="showKeyBtn">👁️</button>
           </div>
-          <button id="setting-button">Setting</button>
-        </div>
-        <div>
-          <div id="setting-div" class="boundary">
-            <label id="settingDiv">Setting</label>
-            <div id="modelSetting" class="boundary"><form>
-              <label for="api-key-input" id="apiKeyInputLabel">Enter your API key here</label>
-              <input id="api-key-input" autocomplete="api-key-input" type="password" placeholder="Enter your API key here"/>
-              <input type="checkbox" onclick="showAPIKEY()" placeholder="Show API key" id="showKey"><label for="showKey" id="showKeyLabel">Show API key</label>
-              <br>
+
           <label for="provider-select" id="providerSelectLabel">Provider</label>
           <select id="provider-select">
             <option value="openai">OpenAI</option>
             <option value="nvidia">NVIDIA NIM</option>
+            <option value="anthropic">Anthropic</option>
+            <option value="google">Google Gemini</option>
+            <option value="groq">Groq</option>
+            <option value="mistral">Mistral</option>
             <option value="custom">Custom</option>
           </select>
-          <br>
+
           <label for="base-url-input" id="baseUrlLabel">Base URL</label>
           <input id="base-url-input" type="text" placeholder="https://api.openai.com/v1"/>
-          <br>
-              <label for="model-select" id="modelSelectLabel">Select model</label>
-          <div style="display: flex;">
+
+          <label for="model-input" id="modelSelectLabel">Model</label>
+          <div class="model-select-container">
             <input id="model-input" type="text" list="model-options" placeholder="Select or type model"/>
             <datalist id="model-options">
               <option value="gpt-4-turbo">
               <option value="gpt-3.5-turbo">
             </datalist>
+            <button id="fetch-models-button">🔄</button>
           </div>
-              <br>
-              <label for="theme-select" id="themeSelectLabel">Theme</label>
-              <select id="theme-select">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system" selected>System</option>
-              </select>
-              <div>
-                <div style="display: ruby-text;"><label for="temperature" id="temperatureLabel">Temperature </label><div id="temperatureValue"> 0.7</div></div>
-                <div class="rangeDiv">
-                  0 <input type="range" min="0" max="1" value="0.7" step="0.1" id="temperature" />1
-                </div>
-                <div class="clearfix"></div>
-              </div>
-              <div>
-                <div style="display: ruby-text;"><label for="context-window" id="contextWindowLabel">Context Window </label><div id="contextWindowValue"> 10</div></div>
-                <div class="rangeDiv">
-                  1 <input type="range" min="1" max="50" value="10" step="1" id="context-window" />50
-                </div>
-              </div>
-            </form></div>
-            <div id="promptSetting" class="boundary">
-              <label id="promptLibraryLabel">Prompt Library</label>
-              <div id="prompt-list" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--input-border); margin: 5px 0; padding: 5px;"></div>
-              <button id="add-prompt-button">Add Prompt</button>
-              <button id="export-settings-button">Export Settings</button>
-              <button id="import-settings-button">Import Settings</button>
-              <input type="file" id="settings-import-file" style="display:none;"/>
-            </div>
-            <div id="ttsSetting" class="boundary">
-              <div>
-                <label for="language-select" id="languageSelectLabel">Select UI language</label>
-                <select id="language-select" title="select UI language">
-                  <option value="zh-CN">中文</option>
-                  <option value="en-GB" selected>English</option>
-                </select>
-              </div>
-              <div>
-                <label id="speechSettingLabel">Speech setting</label><br>
-                <div style="display: ruby-text;"><label for="rate" id="rateLabel">Rate </label><div class="rate-value"> 0.5</div></div>
-                <div class="rangeDiv">
-                  0.5<input type="range" min="0.5" max="2" value="0.5" step="0.1" id="rate" />2
-                </div>
-                <div class="clearfix"></div>
-              </div>
-              <div>
-                <div style="display: ruby-text;"><label for="pitch" id="pitchLabel">Pitch </label><div class="pitch-value"> 1</div></div>
-                <div class="rangeDiv">
-                  0<input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />2
-                </div>
-                <div class="clearfix"></div>
-              </div>
-            </div>
+
+          <div class="range-group">
+            <label for="temperature" id="temperatureLabel">Temperature: <span id="temperatureValue">0.7</span></label>
+            <input type="range" min="0" max="1" value="0.7" step="0.1" id="temperature" />
           </div>
+
+          <div class="range-group">
+            <label for="context-window" id="contextWindowLabel">Context Window: <span id="contextWindowValue">10</span></label>
+            <input type="range" min="1" max="50" value="10" step="1" id="context-window" />
+          </div>
+        </div>
+
+        <div id="promptSetting" class="setting-group">
+          <label id="promptLibraryLabel">Prompt Library</label>
+          <div id="prompt-list"></div>
+          <button id="add-prompt-button">Add Prompt</button>
+        </div>
+
+        <div id="ttsSetting" class="setting-group">
+          <label for="theme-select" id="themeSelectLabel">Theme</label>
+          <select id="theme-select">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="system" selected>System</option>
+          </select>
+
+          <label for="language-select" id="languageSelectLabel">UI Language</label>
+          <select id="language-select">
+            <option value="zh-CN">中文</option>
+            <option value="en-GB" selected>English</option>
+          </select>
+
+          <label id="speechSettingLabel">Speech Settings</label>
+          <div class="range-group">
+            <label for="rate" id="rateLabel">Rate: <span class="rate-value">1.0</span></label>
+            <input type="range" min="0.5" max="2" value="1.0" step="0.1" id="rate" />
+          </div>
+          <div class="range-group">
+            <label for="pitch" id="pitchLabel">Pitch: <span class="pitch-value">1.0</span></label>
+            <input type="range" min="0" max="2" value="1.0" step="0.1" id="pitch" />
+          </div>
+        </div>
+
+        <div class="portability-buttons">
+          <button id="export-settings-button">Export Settings</button>
+          <button id="import-settings-button">Import Settings</button>
+          <input type="file" id="settings-import-file" style="display:none;"/>
         </div>
       </div>
     </div>
   </div>
+
   <script src="storage.js"></script>
   <script src="migration.js"></script>
   <script src="script.js"></script>
