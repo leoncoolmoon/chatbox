@@ -48,6 +48,7 @@ var selectedContextIds = new Set();
 var voice = false;
 var you = "You";
 var bot = "Chatbot";
+var corsErrorMsg = "Failed to fetch models. This may be due to CORS restrictions from the provider. Try entering the model name manually.";
 var waiting = "waiting...";
 var enterApiKey = "Please enter an API key";
 var startTalk = "Start Talk";
@@ -373,7 +374,11 @@ if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
             alert(`Fetched ${data.data.length} models`);
         }
     } catch (e) {
-        alert("Failed to fetch models: " + e.message);
+        if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
+            alert(corsErrorMsg);
+        } else {
+            alert("Failed to fetch models: " + e.message);
+        }
     } finally {
         fetchModelsBtn.textContent = "🔄";
     }
@@ -501,9 +506,30 @@ window.addEventListener('load', async () => {
                 'ollama': 'http://localhost:11434/v1',
                 'litellm': 'http://localhost:4000/v1'
             };
+            const modelDefaults = {
+                'openai': ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
+                'nvidia': ['meta/llama3-70b-instruct', 'nvidia/llama-3.1-405b-instruct', 'mistralai/mixtral-8x7b-instruct-v0.1'],
+                'anthropic': ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],
+                'google': ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'],
+                'groq': ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768'],
+                'mistral': ['mistral-large-latest', 'mistral-medium-latest', 'open-mixtral-8x22b'],
+                'ollama': ['llama3', 'mistral', 'phi3'],
+                'lmstudio': ['luna-ai-llama2', 'mistral-7b-instruct'],
+                'litellm': ['gpt-3.5-turbo', 'claude-3-haiku']
+            };
             if (defaults[el.value]) {
                 baseUrlInput.value = defaults[el.value];
                 await storage.setSetting('baseUrl', baseUrlInput.value);
+            }
+            if (modelDefaults[el.value]) {
+                modelOptions.innerHTML = '';
+                modelDefaults[el.value].forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    modelOptions.appendChild(opt);
+                });
+                modelInput.value = modelDefaults[el.value][0];
+                await storage.setSetting('model', modelInput.value);
             }
         }
     });
@@ -638,6 +664,7 @@ function loadLanguage(lang) {
         document.getElementById("promptLibraryLabel").innerHTML = data.label14;
         document.getElementById("treeTitle").innerHTML = data.label15;
         document.getElementById("topicsTitle").innerHTML = data.label16;
+        if (data.text6) corsErrorMsg = data.text6;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;

@@ -33,5 +33,6 @@
     "text2":"ChatGPT",
     "text3":"waiting...",
     "text4":"Please enter an API key",
-    "text5":"I have a mind block, please ask another question."
+    "text5":"I have a mind block, please ask another question.",
+    "text6":"Failed to fetch models. This may be due to CORS restrictions from the provider. Try entering the model name manually."
  }
