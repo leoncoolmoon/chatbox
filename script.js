@@ -534,9 +534,9 @@ function loadLanguage(lang) {
         apiKeyInput.setAttribute("placeholder", data.label3);
         document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
 
-        document.getElementById("speechSettingLabel").innerHTML = data.label5;
-        document.getElementById("rateLabel").innerHTML = data.label6 + ": " + rateValue.innerHTML;
-        document.getElementById("pitchLabel").innerHTML = data.label7 + ": " + pitchValue.innerHTML;
+        if (document.getElementById("speechSettingLabel")) document.getElementById("speechSettingLabel").innerHTML = data.label5;
+        if (document.getElementById("rateLabel")) document.getElementById("rateLabel").innerHTML = data.label6 + ": " + rateValue.innerHTML;
+        if (document.getElementById("pitchLabel")) document.getElementById("pitchLabel").innerHTML = data.label7 + ": " + pitchValue.innerHTML;
         document.getElementById("languageSelectLabel").innerHTML = data.label8;
         document.getElementById("modelSelectLabel").innerHTML = data.label9;
 

@@ -2,7 +2,13 @@ var matches;
 var position;
 const maxSearch = 10;
 var searchCounter = 0;
-addSearch(document.getElementById('toolbar'), document.getElementById('conversation-display'));
+window.addEventListener('load', () => {
+    const toolbar = document.getElementById('toolbar');
+    const display = document.getElementById('conversation-display');
+    if (toolbar && display) {
+        addSearch(toolbar, display);
+    }
+});
 var searchedDiv;
 var uiDiv;
 var mousePosition;
@@ -12,39 +18,33 @@ var floated = false;
 //ideal 10 highlight color list
 var idealcolor = ["#ffff00", "#ff00ff", "#00ffff", "#ff0000", "#00ff00", "#0000ff", "#ff8000", "#ff0080", "#80ff00", "#8000ff"];
 function addSearch(toolDiv, targetDiv) {
-    var backgroundColor = window.matchMedia('(prefers-color-scheme: dark)').matches ? "#000000" : "#ffffff";
     searchedDiv = targetDiv;
-    uiDiv = toolDiv
+    uiDiv = toolDiv;
     //create the search tool
     const searchTool = document.createElement('div');
     searchTool.setAttribute('id', 'searchTool');
     searchTool.style.display = 'block';
-    uiDiv.style.backgroundColor = backgroundColor + "88";
+    uiDiv.style.backgroundColor = "var(--toolbar-bg)";
     uiDiv.style.borderRadius = '4px';
     uiDiv.appendChild(searchTool);
-    var parentDiv = document.getElementById('parentDiv');
+    var parentDiv = document.getElementById('app-container');
     var originalPosition;
     originalPosition = {
-        x: uiDiv.offsetLeft - parentDiv.offsetLeft,
-        y: uiDiv.offsetTop - parentDiv.offsetTop
+        x: uiDiv.offsetLeft - (parentDiv ? parentDiv.offsetLeft : 0),
+        y: uiDiv.offsetTop - (parentDiv ? parentDiv.offsetTop : 0)
     };
     //create the search tool button
     const searchToolButton = document.createElement('button');
     searchToolButton.setAttribute('id', 'searchToolButton');
     searchToolButton.innerHTML = '<img src="search.svg" title = "search" style="height:1em;"/>';
     searchToolButton.addEventListener('click', function () {
-        //sth is wrong
-        //searchList.style.display = searchList.style.display == 'flex'?'none':'flex';
         searchbar.style.display = searchbar.style.display == 'flex' ? 'none' : 'flex';
         uiDiv.style.position = searchbar.style.display == 'flex' ? 'fixed' : 'relative';
-        //add box-shadow: rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em; to uiDiv.style
         uiDiv.style.boxShadow = searchbar.style.display == 'flex' ? 'rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em' : 'none';
-        //set innerHTML to "X" when fixed
         this.innerHTML = searchbar.style.display == 'flex' ? '<img src="close.svg" title = "close" style="height:1em;"/>' : '<img src="search.svg" title="search" style="height:1em;"/>';
         if (searchbar.style.display == 'flex') {
-            uiDiv.style.left = parentDiv.offsetLeft + 'px';
-            uiDiv.style.top = parentDiv.offsetTop + 'px';
-
+            uiDiv.style.left = (parentDiv ? parentDiv.offsetLeft : 0) + 'px';
+            uiDiv.style.top = (parentDiv ? parentDiv.offsetTop : 0) + 'px';
             floated = true;
         } else {
             uiDiv.style.left = originalPosition.x + 'px';
@@ -52,15 +52,12 @@ function addSearch(toolDiv, targetDiv) {
             floated = false;
         }
     });
-    // searchTool.appendChild(searchToolButton);    
-    //create the search list it list all the searchs done
     const searchList = document.createElement('div');
     searchList.setAttribute('id', 'searchList');
     searchList.style.display = 'flex';
     searchTool.appendChild(searchList);
     searchList.appendChild(searchToolButton);
 
-    //create the search bar it contains the input, highlight color, case sensitive, search button
     const searchbar = document.createElement('div');
     searchbar.setAttribute('id', 'searchbar');
     searchbar.style.display = 'none';
@@ -68,10 +65,8 @@ function addSearch(toolDiv, targetDiv) {
     searchbar.style.flexWrap = 'wrap';
     searchbar.style.justifyContent = 'flex-start';
     searchbar.style.alignItems = 'center';
-    //create the search input
+
     const searchInput = document.createElement('input');
-    searchInput.style.backgroundColor = backgroundColor;
-    searchInput.style.color = searchInput.style.backgroundColor === "#ffffff" ? "#000000" : "#ffffff";
     searchInput.setAttribute('type', 'text');
     searchInput.setAttribute('id', 'searchInput');
     searchInput.setAttribute('placeholder', 'Search');
@@ -81,7 +76,6 @@ function addSearch(toolDiv, targetDiv) {
             searchButton.click();
         }
     });
-    //create the highlight color picker
     const highlight = document.createElement('input');
     highlight.setAttribute('id', 'highlight');
     highlight.setAttribute('type', 'color');
@@ -93,50 +87,31 @@ function addSearch(toolDiv, targetDiv) {
     highlight.addEventListener('input', function () {
         this.style.backgroundColor = this.value;
     });
-    //create the case sensitive checkbox
     const caseSensitive = document.createElement('input');
     caseSensitive.setAttribute('id', 'caseSensitive');
     caseSensitive.setAttribute('type', 'checkbox');
     caseSensitive.setAttribute('value', 'caseSensitive');
     caseSensitive.style.display = 'none';
-    caseSensitive.addEventListener('change', function () {
-        if (this.checked) {
-            caseSensitiveLabel.style.color = '#ff0000';
-        } else {
-            caseSensitiveLabel.style.color = '#888888';
-        }
-    });
     const caseSensitiveLabel = document.createElement('label');
     caseSensitiveLabel.setAttribute('for', 'caseSensitive');
     caseSensitiveLabel.innerHTML = 'Aa';
     caseSensitiveLabel.style.margin = '8px';
     caseSensitiveLabel.style.color = '#888888';
-    //create the match whole word checkbox
+
     const matchWholeWord = document.createElement('input');
     matchWholeWord.setAttribute('id', 'matchWholeWord');
     matchWholeWord.setAttribute('type', 'checkbox');
     matchWholeWord.setAttribute('value', 'matchWholeWord');
     matchWholeWord.style.display = 'none';
-    matchWholeWord.addEventListener('change', function () {
-        if (this.checked) {
-            matchWholeWordLabel.style.color = '#ff0000';
-        } else {
-            matchWholeWordLabel.style.color = '#888888';
-        }
-    });
     const matchWholeWordLabel = document.createElement('label');
     matchWholeWordLabel.setAttribute('for', 'matchWholeWord');
     matchWholeWordLabel.innerHTML = '〔ab〕';
     matchWholeWordLabel.style.color = '#888888';
     matchWholeWordLabel.style.margin = '8px 0px';
-    //create the search button
+
     const searchButton = document.createElement('button');
     searchButton.setAttribute('id', 'searchButton');
     searchButton.innerHTML = '✔';
-    searchButton.addEventListener('contextmenu', function (e) {
-        e.preventDefault();
-        test();
-    });
     searchButton.addEventListener('click', function () {
         if (searchCounter < maxSearch) {
             var tagName = 'searchListItem' + (searchCounter + 1);
@@ -155,7 +130,6 @@ function addSearch(toolDiv, targetDiv) {
                 searchListItem.setAttribute('id', tagName);
                 searchListItem.setAttribute('onclick', 'modifySearch(this)');
                 searchList.appendChild(searchListItem);
-                //search the input in the display and highlight it
                 nextButton.style.display = 'block';
                 previousButton.style.display = 'block';
                 clearSearch.style.display = 'block';
@@ -168,27 +142,23 @@ function addSearch(toolDiv, targetDiv) {
             alert('You have reached the maximum number of searchs');
         }
     });
-    //create the next and previous buttons
     const nextButton = document.createElement('button');
     nextButton.setAttribute('id', 'nextButton');
     nextButton.style.display = 'none';
     nextButton.innerHTML = '▶';
-    nextButton.setAttribute('onclick', 'nextSearch()');
+    nextButton.onclick = () => nextSearch();
     const previousButton = document.createElement('button');
     previousButton.setAttribute('id', 'previousButton');
     previousButton.style.display = 'none';
     previousButton.innerHTML = '◀';
-    previousButton.setAttribute('onclick', 'previousSearch()');
+    previousButton.onclick = () => previousSearch();
 
-    //create the clear button
     const clearSearch = document.createElement('button');
     clearSearch.setAttribute('id', 'clearSearch');
     clearSearch.innerHTML = '✘';
     clearSearch.style.display = 'none';
     clearSearch.addEventListener('click', function () {
-        // Get all the spans in the div.
         const spans = searchedDiv.querySelectorAll("span");
-        // Remove all the spans.
         for (const span of spans) {
             span.outerHTML = span.innerHTML;
         }
@@ -201,7 +171,6 @@ function addSearch(toolDiv, targetDiv) {
         nextButton.style.display = 'none';
         previousButton.style.display = 'none';
         clearSearch.style.display = 'none';
-        //un highlight all the text done by all searchs
     });
     searchbar.appendChild(searchInput);
     searchbar.appendChild(highlight);
@@ -213,16 +182,13 @@ function addSearch(toolDiv, targetDiv) {
     searchbar.appendChild(previousButton);
     searchbar.appendChild(nextButton);
     searchbar.appendChild(searchButton);
-    //move uiDIV with mouse or touch
     uiDiv.addEventListener('mousedown', dragStart);
     uiDiv.addEventListener('touchstart', dragStart, { passive: true });
     document.addEventListener('mousemove', drag);
     document.addEventListener('touchmove', drag, { passive: true });
     document.addEventListener('mouseup', dragEnd);
     document.addEventListener('touchend', dragEnd);
-
 }
-//modify the search list
 function modifySearch(element) {
     unhighlightText(element.getAttribute('id'));
     searchInput.value = element.innerHTML;
@@ -231,12 +197,10 @@ function modifySearch(element) {
     highlight.value = color != "#000000" ? color : idealcolor[searchCounter % 10];
     highlight.style.backgroundColor = highlight.value;
     element.remove();
-    //un highlight all the text done by this search
-    //need code
-    nextButton.style.display = 'none';
-    previousButton.style.display = 'none';
+    document.getElementById('nextButton').style.display = 'none';
+    document.getElementById('previousButton').style.display = 'none';
     if (searchCounter == 0) {
-        clearSearch.style.display = 'none';
+        document.getElementById('clearSearch').style.display = 'none';
     }
 }
 var highlightItems = [];
@@ -244,21 +208,13 @@ var showPoint = 0;
 function highlightText(tagName, searchText, color) {
     var toBeSearched = searchedDiv.innerHTML.toString();
     var pureText = searchedDiv.textContent;
-    searchText = matchWholeWord.checked ? '\\b' + searchText + '\\b' : searchText;
-    matches = pureText.match(new RegExp(searchText, (caseSensitive.checked ? "g" : "gi")));
-    // If there are no matches, return.
-    if (!matches) {
-        return false;
-    }
-    // Highlight all the matching text.
+    const caseSens = document.getElementById('caseSensitive').checked;
+    const wholeWord = document.getElementById('matchWholeWord').checked;
+    searchText = wholeWord ? '\\b' + searchText + '\\b' : searchText;
+    matches = pureText.match(new RegExp(searchText, (caseSens ? "g" : "gi")));
+    if (!matches) return false;
     var lastEnd = 0;
-    //clear highlightItems
     highlightItems = [];
-    //test text position
-    var range = document.createRange();
-    range.selectNode(searchedDiv);
-    var textNode;
-    //test text position
     for (const match of matches) {
         const span = document.createElement("span");
         span.style.color = color;
@@ -273,24 +229,23 @@ function highlightText(tagName, searchText, color) {
             var end = start + match.length;
             toBeSearched = toBeSearched.slice(0, start) + span.outerHTML + toBeSearched.slice(end);
             lastEnd = start + span.outerHTML.length;
+            highlightItems.push({ start: start, text: match, end: lastEnd });
         }
-        highlightItems.push({ start: start, text: match, end: lastEnd });
     }
     searchedDiv.innerHTML = toBeSearched;
-    // Scroll to the first matching result.
-    searchedDiv.focus();
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(createRangeFromPosition(highlightItems[0]));
-    document.getElementById('highlight' + highlightItems[0].start).scrollIntoView();
+    if (highlightItems.length > 0) {
+        searchedDiv.focus();
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(createRangeFromPosition(highlightItems[0]));
+        document.getElementById('highlight' + highlightItems[0].start).scrollIntoView();
+    }
     return true;
 }
-//function to check if the position in inside a tag
 function insideTag(text, position) {
     return text.lastIndexOf("<", position) > text.lastIndexOf(">", position);
 }
 function unhighlightText(tagName) {
     const spans = searchedDiv.querySelectorAll("span");
-    // Remove all the spans that have the specified color.
     for (const span of spans) {
         if (span.className == tagName) {
             span.outerHTML = span.innerHTML;
@@ -298,41 +253,33 @@ function unhighlightText(tagName) {
     }
 }
 function nextSearch() {
-    // Scroll to the next matching result.
-    searchedDiv.focus();
+    if (highlightItems.length === 0) return;
     showPoint = (showPoint + 1) % highlightItems.length;
     window.getSelection().removeAllRanges();
     window.getSelection().addRange(createRangeFromPosition(highlightItems[showPoint]));
     document.getElementById('highlight' + highlightItems[showPoint].start).scrollIntoView();
 }
 function previousSearch() {
-    // Scroll to the previous matching result.
-    searchedDiv.focus();
+    if (highlightItems.length === 0) return;
     showPoint = (highlightItems.length + showPoint - 1) % highlightItems.length;
     window.getSelection().removeAllRanges();
     window.getSelection().addRange(createRangeFromPosition(highlightItems[showPoint]));
     document.getElementById('highlight' + highlightItems[showPoint].start).scrollIntoView();
 }
-
-function test() {
-    searchedDiv.innerHTML = "<div>Test:<p class = 'botText'>Testing is a crucial part of any software development lifecycle. It ensures that the software meets the required quality standards, is reliable, and performs as expected. Testing is the process of evaluating a system or its component(s) with the intent to find whether it satisfies the specified requirements or not. It is essential to identify and fix any defects in the software before it is released to the end-users. There are different types of testing that can be performed on software, such as functional testing, performance testing, security testing, usability testing, and many more. Each type of testing focuses on a specific aspect of the software and helps to ensure that it meets the required criteria. Functional testing is a type of testing that focuses on verifying whether the software functions as expected. It includes various types of testing such as unit testing, integration testing, system testing, and acceptance testing. Performance testing is another type of testing that focuses on evaluating the performance of the software, such as load testing and stress testing. Security testing is a type of testing that focuses on identifying and fixing security vulnerabilities in the software. Usability testing, on the other hand, focuses on evaluating the ease of use of the software. Testing can be performed manually or using automated tools. Manual testing involves a tester manually testing the software, while automated testing involves using automated tools to perform the tests. Automated testing is faster, more efficient, and can be performed repeatedly, making it ideal for regression testing. In conclusion, testing is an essential part of the software development lifecycle. It ensures that the software meets the required quality standards and performs as expected. Different types of testing can be performed on software, such as functional testing, performance testing, security testing, usability testing, and many more. Testing can be performed manually or using automated tools, with automated testing being faster and more efficient.</p></div>"
-    searchInput.value = "test";
-    searchButton.click();
-
-}
-
 function createRangeFromPosition(hl) {
-    // Create a new Range object
     let range = document.createRange();
-    // Split the text content of the element into two TextNode objects
-    let textNode = document.getElementById("highlight" + hl.start).firstChild;
-    range.setStart(textNode, 0);
-    range.setEnd(textNode, hl.text.length);
+    let node = document.getElementById("highlight" + hl.start);
+    if (node && node.firstChild) {
+        range.setStart(node.firstChild, 0);
+        range.setEnd(node.firstChild, hl.text.length);
+    }
     return range;
 }
 function rgbtohex(rgb) {
-    rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-    return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+    if (!rgb) return "#ffff00";
+    var match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    if (!match) return "#ffff00";
+    return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
 }
 function hex(x) {
     return ("0" + parseInt(x).toString(16)).slice(-2);
@@ -341,19 +288,12 @@ function dragStart(e) {
     if (floated) {
         isDown = true;
         if (e.type === 'touchstart') {
-            offset = [
-                uiDiv.offsetLeft - e.touches[0].clientX,
-                uiDiv.offsetTop - e.touches[0].clientY
-            ];
+            offset = [uiDiv.offsetLeft - e.touches[0].clientX, uiDiv.offsetTop - e.touches[0].clientY];
         } else {
-            offset = [
-                uiDiv.offsetLeft - e.clientX,
-                uiDiv.offsetTop - e.clientY
-            ];
+            offset = [uiDiv.offsetLeft - e.clientX, uiDiv.offsetTop - e.clientY];
         }
     }
 }
-
 function drag(e) {
     if (isDown) {
         var newX, newY;
