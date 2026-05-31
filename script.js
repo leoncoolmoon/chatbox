@@ -38,6 +38,7 @@ const modelOptions = document.getElementById('model-options');
 const menuToggle = document.getElementById('menu-toggle');
 const mobileSettingsBtn = document.getElementById('mobile-settings-button');
 const closeSettingsBtn = document.getElementById('close-settings');
+const closeSidebarBtn = document.getElementById('close-sidebar');
 const sidebar = document.getElementById('sidebar');
 const rightPanel = document.getElementById('right-panel');
 
@@ -89,6 +90,10 @@ if (mobileSettingsBtn) mobileSettingsBtn.onclick = () => {
 
 if (closeSettingsBtn) closeSettingsBtn.onclick = () => {
     rightPanel.classList.remove('open');
+};
+
+if (closeSidebarBtn) closeSidebarBtn.onclick = () => {
+    sidebar.classList.remove('open');
 };
 
 // Core Chat
@@ -412,15 +417,40 @@ async function loadPrompts() {
     promptListDiv.innerHTML = '';
     prompts.forEach(p => {
         const div = document.createElement('div');
-        div.style = "display:flex; justify-content:space-between; margin-bottom:5px;";
-        div.innerHTML = `<span>${p.title}</span>`;
+        div.className = 'prompt-item';
+        div.innerHTML = `<span title="${p.content}">${p.title}</span>`;
+        const btnGroup = document.createElement('div');
+
         const use = document.createElement('button');
         use.textContent = 'Use';
-        use.onclick = () => promptInput.value = p.content;
-        div.appendChild(use);
+        use.onclick = () => {
+            promptInput.value = p.content;
+            if (window.innerWidth <= 768) rightPanel.classList.remove('open');
+        };
+
+        const del = document.createElement('button');
+        del.textContent = '×';
+        del.className = 'del-btn';
+        del.onclick = async () => {
+            await new Promise(r => storage.db.transaction(['prompts'], 'readwrite').objectStore('prompts').delete(p.id).onsuccess = () => r());
+            loadPrompts();
+        };
+
+        btnGroup.appendChild(use);
+        btnGroup.appendChild(del);
+        div.appendChild(btnGroup);
         promptListDiv.appendChild(div);
     });
 }
+
+if (addPromptButton) addPromptButton.onclick = async () => {
+    const title = prompt("Prompt Title");
+    const content = prompt("Prompt Content");
+    if (title && content) {
+        await new Promise(r => storage.db.transaction(['prompts'], 'readwrite').objectStore('prompts').add({ title, content }).onsuccess = () => r());
+        loadPrompts();
+    }
+};
 
 // Initial Load
 window.addEventListener('load', async () => {
@@ -466,7 +496,10 @@ window.addEventListener('load', async () => {
                 'anthropic': 'https://api.anthropic.com/v1',
                 'google': 'https://generativelanguage.googleapis.com/v1beta',
                 'groq': 'https://api.groq.com/openai/v1',
-                'mistral': 'https://api.mistral.ai/v1'
+                'mistral': 'https://api.mistral.ai/v1',
+                'lmstudio': 'http://localhost:1234/v1',
+                'ollama': 'http://localhost:11434/v1',
+                'litellm': 'http://localhost:4000/v1'
             };
             if (defaults[el.value]) {
                 baseUrlInput.value = defaults[el.value];
@@ -499,6 +532,64 @@ if (exportSettingsBtn) exportSettingsBtn.onclick = async () => {
     a.href = URL.createObjectURL(new Blob([JSON.stringify({settings, prompts})], {type:'application/json'}));
     a.download = 'settings.json';
     a.click();
+};
+
+if (importSettingsBtn) importSettingsBtn.onclick = () => settingsImportFile.click();
+if (settingsImportFile) settingsImportFile.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+        try {
+            const data = JSON.parse(ev.target.result);
+            if (data.settings) {
+                for (let k in data.settings) await storage.setSetting(k, data.settings[k]);
+            }
+            if (data.prompts) {
+                const tx = storage.db.transaction(['prompts'], 'readwrite');
+                const store = tx.objectStore('prompts');
+                data.prompts.forEach(p => {
+                    delete p.id;
+                    store.add(p);
+                });
+            }
+            location.reload();
+        } catch (err) { alert("Failed to import settings"); }
+    };
+    reader.readAsText(file);
+};
+
+if (exportHistoryBtn) exportHistoryBtn.onclick = async () => {
+    const topics = await new Promise(r => storage.db.transaction(['topics']).objectStore('topics').getAll().onsuccess = e => r(e.target.result));
+    const messages = await new Promise(r => storage.db.transaction(['messages']).objectStore('messages').getAll().onsuccess = e => r(e.target.result));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({topics, messages})], {type:'application/json'}));
+    a.download = 'chat_history.json';
+    a.click();
+};
+
+if (importHistoryBtn) importHistoryBtn.onclick = () => historyImportFile.click();
+if (historyImportFile) historyImportFile.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+        try {
+            const data = JSON.parse(ev.target.result);
+            if (data.topics) {
+                const tx = storage.db.transaction(['topics'], 'readwrite');
+                const store = tx.objectStore('topics');
+                data.topics.forEach(t => store.put(t));
+            }
+            if (data.messages) {
+                const tx = storage.db.transaction(['messages'], 'readwrite');
+                const store = tx.objectStore('messages');
+                data.messages.forEach(m => store.put(m));
+            }
+            location.reload();
+        } catch (err) { alert("Failed to import history"); }
+    };
+    reader.readAsText(file);
 };
 
 function tts(text) {

@@ -72,6 +72,22 @@ body {
   border-bottom: 1px solid var(--input-border);
 }
 
+.sidebar-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#close-sidebar, #close-settings {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  padding: 0 5px;
+  cursor: pointer;
+  line-height: 1;
+}
+
 #topic-list {
   flex: 1;
   overflow-y: auto;
@@ -348,4 +364,45 @@ button:hover {
 
 #fetch-models-button {
   padding: 8px;
+}
+
+.prompt-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background-color: var(--active-item-bg);
+  border-radius: 4px;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.prompt-item span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 10px;
+}
+
+.prompt-item div {
+  display: flex;
+  gap: 5px;
+}
+
+.del-btn {
+  background-color: #f44336 !important;
+  padding: 4px 8px !important;
+}
+
+.portability-buttons, .action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.portability-buttons button, .action-buttons button {
+  flex: 1;
+  min-width: 120px;
 }

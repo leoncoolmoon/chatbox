@@ -19,7 +19,10 @@
     <div id="sidebar">
       <div id="sidebar-header">
         <h3 id="topicsTitle">Topics</h3>
-        <button id="new-topic-button">+</button>
+        <div class="sidebar-controls">
+          <button id="new-topic-button">+</button>
+          <button id="close-sidebar" class="mobile-only">×</button>
+        </div>
       </div>
       <div id="topic-list"></div>
     </div>
@@ -92,6 +95,9 @@
             <option value="google">Google Gemini</option>
             <option value="groq">Groq</option>
             <option value="mistral">Mistral</option>
+            <option value="lmstudio">LM Studio</option>
+            <option value="ollama">Ollama</option>
+            <option value="litellm">LiteLLM</option>
             <option value="custom">Custom</option>
           </select>
 
