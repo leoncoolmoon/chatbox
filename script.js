@@ -34,7 +34,7 @@ const importSettingsBtn = document.getElementById('import-settings-button');
 const settingsImportFile = document.getElementById('settings-import-file');
 const showKeyBtn = document.getElementById('showKeyBtn');
 const fetchModelsBtn = document.getElementById('fetch-models-button');
-const modelOptions = document.getElementById('model-options');
+// model-input is now a <select>, no separate datalist needed
 const menuToggle = document.getElementById('menu-toggle');
 const mobileSettingsBtn = document.getElementById('mobile-settings-button');
 const closeSettingsBtn = document.getElementById('close-settings');
@@ -387,7 +387,7 @@ if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
             // 存储该服务商获取到的模型列表，下次切换回来还能用
             await storage.setSetting(`provider_models_${providerSelect.value}`, JSON.stringify(modelList));
             populateModelDatalist(modelList);
-            // 自动填入第一个模型到输入框
+            // 自动选中第一个
             if (modelInput && modelList[0]) {
                 modelInput.value = modelList[0].id || modelList[0];
                 await saveCurrentProviderSettings();
@@ -581,13 +581,19 @@ async function loadProviderSettings(provider) {
 }
 
 function populateModelDatalist(modelList) {
-    if (!modelOptions) return;
-    modelOptions.innerHTML = '';
+    if (!modelInput) return;
+    const current = modelInput.value;
+    modelInput.innerHTML = '';
     modelList.forEach(m => {
         const opt = document.createElement('option');
         opt.value = typeof m === 'string' ? m : (m.id || '');
-        modelOptions.appendChild(opt);
+        opt.textContent = opt.value;
+        modelInput.appendChild(opt);
     });
+    // 恢复之前选中的值（如果还在列表里）
+    if (current && [...modelInput.options].some(o => o.value === current)) {
+        modelInput.value = current;
+    }
 }
 
 // 切换服务商：先把当前设置存到【旧服务商】，再加载新的
