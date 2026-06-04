@@ -503,56 +503,89 @@ window.addEventListener('load', async () => {
     selectLanguage();
 });
 
-// Per-provider defaults
-const providerDefaults = {
-    'openai':    { url: 'https://api.openai.com/v1',                    models: ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'] },
-    'nvidia':    { url: 'https://integrate.api.nvidia.com/v1',           models: ['meta/llama3-70b-instruct', 'nvidia/llama-3.1-405b-instruct', 'mistralai/mixtral-8x7b-instruct-v0.1'] },
-    'anthropic': { url: 'https://api.anthropic.com/v1',                  models: ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'] },
-    'google':    { url: 'https://generativelanguage.googleapis.com/v1beta', models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'] },
-    'groq':      { url: 'https://api.groq.com/openai/v1',               models: ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768'] },
-    'mistral':   { url: 'https://api.mistral.ai/v1',                     models: ['mistral-large-latest', 'mistral-medium-latest', 'open-mixtral-8x22b'] },
-    'lmstudio':  { url: 'http://localhost:1234/v1',                      models: ['luna-ai-llama2', 'mistral-7b-instruct'] },
-    'ollama':    { url: 'http://localhost:11434/v1',                     models: ['llama3', 'mistral', 'phi3'] },
-    'litellm':   { url: 'http://localhost:4000/v1',                      models: ['gpt-3.5-turbo', 'claude-3-haiku'] },
-    'custom':    { url: '',                                               models: [] }
+// Per-provider config（与 LLMtester 保持一致）
+// needsKey: true=必填  'optional'=可选显示  false=隐藏
+const PROVIDERS = {
+    'openai':    { url: 'https://api.openai.com/v1',                     needsKey: true,       models: ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],                                                    hint: '在线服务 · <a href="https://platform.openai.com/api-keys" target="_blank">获取 API Key</a>' },
+    'nvidia':    { url: 'https://integrate.api.nvidia.com/v1',            needsKey: true,       models: ['meta/llama3-70b-instruct', 'nvidia/llama-3.1-405b-instruct', 'mistralai/mixtral-8x7b-instruct-v0.1'], hint: '在线服务 · <a href="https://build.nvidia.com" target="_blank">获取 API Key</a> · 前缀 nvapi-' },
+    'anthropic': { url: 'https://api.anthropic.com/v1',                   needsKey: 'optional', models: ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],          hint: '直接调用有 CORS 限制，建议通过 OpenAI 兼容代理访问' },
+    'google':    { url: 'https://generativelanguage.googleapis.com/v1beta',needsKey: 'optional', models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'],                                    hint: '直接调用有 CORS 限制，建议通过 OpenAI 兼容代理访问' },
+    'groq':      { url: 'https://api.groq.com/openai/v1',                 needsKey: true,       models: ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768'],                                  hint: '在线服务 · <a href="https://console.groq.com/keys" target="_blank">获取 API Key</a>' },
+    'mistral':   { url: 'https://api.mistral.ai/v1',                      needsKey: true,       models: ['mistral-large-latest', 'mistral-medium-latest', 'open-mixtral-8x22b'],                      hint: '在线服务 · <a href="https://console.mistral.ai/api-keys" target="_blank">获取 API Key</a>' },
+    'lmstudio':  { url: 'http://localhost:1234/v1',                       needsKey: false,      models: ['luna-ai-llama2', 'mistral-7b-instruct'],                                                    hint: '本地服务 · 默认端口 1234' },
+    'ollama':    { url: 'http://localhost:11434/v1',                      needsKey: false,      models: ['llama3', 'mistral', 'phi3'],                                                                hint: '本地服务 · 默认端口 11434' },
+    'litellm':   { url: 'http://localhost:4000/v1',                       needsKey: 'optional', models: ['gpt-3.5-turbo', 'claude-3-haiku'],                                                          hint: '本地/自托管 · 默认端口 4000 · 统一代理 100+ 模型' },
+    'custom':    { url: '',                                                needsKey: 'optional', models: [],                                                                                           hint: '自定义 OpenAI 兼容端点 · API Key 可留空' },
 };
 
-// Save current provider's settings before switching
-async function saveCurrentProviderSettings() {
-    const provider = providerSelect.value;
-    if (!provider) return;
-    await storage.setSetting(`provider_apikey_${provider}`, apiKeyInput.value);
-    await storage.setSetting(`provider_url_${provider}`, baseUrlInput.value);
-    await storage.setSetting(`provider_model_${provider}`, modelInput.value);
+// 根据 needsKey 更新 API Key 输入框的显示状态
+function applyProviderUI(provider) {
+    const def = PROVIDERS[provider];
+    if (!def) return;
+    const keyLabel = document.getElementById('apiKeyInputLabel');
+    const keyWrap = apiKeyInput ? apiKeyInput.closest('.input-with-toggle') : null;
+    const keyLabelEl = keyLabel;
+
+    // 显示 hint（如果有对应元素）
+    const hintEl = document.getElementById('provider-hint');
+    if (hintEl) hintEl.innerHTML = def.hint || '';
+
+    if (def.needsKey === true) {
+        if (keyLabelEl) keyLabelEl.style.display = '';
+        if (keyWrap) keyWrap.style.display = '';
+        if (keyLabelEl) keyLabelEl.textContent = 'API Key';
+    } else if (def.needsKey === 'optional') {
+        if (keyLabelEl) keyLabelEl.style.display = '';
+        if (keyWrap) keyWrap.style.display = '';
+        if (keyLabelEl) keyLabelEl.textContent = 'API Key（可选）';
+    } else {
+        if (keyLabelEl) keyLabelEl.style.display = 'none';
+        if (keyWrap) keyWrap.style.display = 'none';
+    }
 }
 
-// Load a provider's saved settings (or defaults)
+// 保存当前服务商的设置
+async function saveCurrentProviderSettings() {
+    const provider = providerSelect ? providerSelect.value : null;
+    if (!provider) return;
+    if (apiKeyInput)  await storage.setSetting(`provider_apikey_${provider}`, apiKeyInput.value);
+    if (baseUrlInput) await storage.setSetting(`provider_url_${provider}`, baseUrlInput.value);
+    if (modelInput)   await storage.setSetting(`provider_model_${provider}`, modelInput.value);
+}
+
+// 加载某服务商的已保存设置（首次使用则填默认值）
 async function loadProviderSettings(provider) {
-    const savedKey = await storage.getSetting(`provider_apikey_${provider}`) || '';
-    const def = providerDefaults[provider] || { url: '', models: [] };
-    const savedUrl = await storage.getSetting(`provider_url_${provider}`) || def.url;
+    const def = PROVIDERS[provider] || { url: '', models: [], needsKey: 'optional', hint: '' };
+
+    const savedKey   = await storage.getSetting(`provider_apikey_${provider}`) || '';
+    // 只有用户曾经手动改过 URL，才恢复；否则始终用该服务商的默认 URL
+    const savedUrl   = await storage.getSetting(`provider_url_${provider}`);
     const savedModel = await storage.getSetting(`provider_model_${provider}`) || def.models[0] || '';
 
-    apiKeyInput.value = savedKey;
-    baseUrlInput.value = savedUrl;
+    if (apiKeyInput)  apiKeyInput.value  = savedKey;
+    if (baseUrlInput) baseUrlInput.value = savedUrl || def.url;
 
-    // Populate datalist with defaults, preserving any previously fetched models
+    // 填充模型列表：优先用上次获取到的完整列表，没有则用默认
     const savedModelsJson = await storage.getSetting(`provider_models_${provider}`);
-    let modelList = savedModelsJson ? JSON.parse(savedModelsJson) : def.models;
+    const modelList = savedModelsJson ? JSON.parse(savedModelsJson) : def.models;
     populateModelDatalist(modelList);
-    modelInput.value = savedModel;
+    if (modelInput) modelInput.value = savedModel;
+
+    // 更新 API Key 显示状态
+    applyProviderUI(provider);
 }
 
 function populateModelDatalist(modelList) {
+    if (!modelOptions) return;
     modelOptions.innerHTML = '';
     modelList.forEach(m => {
         const opt = document.createElement('option');
-        opt.value = typeof m === 'string' ? m : m.id;
+        opt.value = typeof m === 'string' ? m : (m.id || '');
         modelOptions.appendChild(opt);
     });
 }
 
-// Event Listeners for Persistence
+// 切换服务商：先存当前 → 加载新的
 if (providerSelect) providerSelect.addEventListener('change', async () => {
     await saveCurrentProviderSettings();
     const provider = providerSelect.value;
@@ -560,6 +593,7 @@ if (providerSelect) providerSelect.addEventListener('change', async () => {
     await loadProviderSettings(provider);
 });
 
+// URL / Key / Model 变动时实时保存
 [apiKeyInput, baseUrlInput, modelInput].forEach(el => {
     if (el) el.addEventListener('change', async () => {
         await saveCurrentProviderSettings();

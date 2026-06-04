@@ -89,17 +89,24 @@
         <div id="modelSetting" class="setting-group">
           <label for="provider-select" id="providerSelectLabel">Provider</label>
           <select id="provider-select">
-            <option value="openai">OpenAI</option>
-            <option value="nvidia">NVIDIA NIM</option>
-            <option value="anthropic">Anthropic</option>
-            <option value="google">Google Gemini</option>
-            <option value="groq">Groq</option>
-            <option value="mistral">Mistral</option>
-            <option value="lmstudio">LM Studio</option>
-            <option value="ollama">Ollama</option>
-            <option value="litellm">LiteLLM</option>
-            <option value="custom">Custom</option>
+            <optgroup label="在线服务">
+              <option value="openai">OpenAI</option>
+              <option value="nvidia">NVIDIA NIM</option>
+              <option value="groq">Groq</option>
+              <option value="mistral">Mistral</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="google">Google Gemini</option>
+            </optgroup>
+            <optgroup label="本地服务">
+              <option value="lmstudio">LM Studio</option>
+              <option value="ollama">Ollama</option>
+              <option value="litellm">LiteLLM</option>
+            </optgroup>
+            <optgroup label="自定义">
+              <option value="custom">自定义端点</option>
+            </optgroup>
           </select>
+          <div id="provider-hint" style="font-size:11px;color:#888;margin-top:2px;min-height:16px;"></div>
 
           <label for="base-url-input" id="baseUrlLabel">Base URL</label>
           <input id="base-url-input" type="text" placeholder="https://api.openai.com/v1"/>
