@@ -8,6 +8,12 @@
   <title>Chatbot PWA</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* 桌面端隐藏仅移动端使用的按钮 */
+    @media (min-width: 769px) {
+      .mobile-only { display: none !important; }
+    }
+  </style>
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5575230312973422"
      crossorigin="anonymous"></script>
@@ -81,12 +87,6 @@
         </div>
 
         <div id="modelSetting" class="setting-group">
-          <label for="api-key-input" id="apiKeyInputLabel">API Key</label>
-          <div class="input-with-toggle">
-            <input id="api-key-input" type="password"/>
-            <button type="button" id="showKeyBtn">👁️</button>
-          </div>
-
           <label for="provider-select" id="providerSelectLabel">Provider</label>
           <select id="provider-select">
             <option value="openai">OpenAI</option>
@@ -103,6 +103,12 @@
 
           <label for="base-url-input" id="baseUrlLabel">Base URL</label>
           <input id="base-url-input" type="text" placeholder="https://api.openai.com/v1"/>
+
+          <label for="api-key-input" id="apiKeyInputLabel">API Key</label>
+          <div class="input-with-toggle">
+            <input id="api-key-input" type="password"/>
+            <button type="button" id="showKeyBtn">👁️</button>
+          </div>
 
           <label for="model-input" id="modelSelectLabel">Model</label>
           <div class="model-select-container">

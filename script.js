@@ -384,16 +384,13 @@ if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
         // 兼容 OpenAI 格式 (data.data[]) 和部分服务商直接返回数组的格式
         const modelList = data.data || (Array.isArray(data) ? data : null);
         if (modelList && modelList.length > 0) {
-            modelOptions.innerHTML = '';
-            modelList.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id || m;
-                opt.textContent = m.id || m;
-                modelOptions.appendChild(opt);
-            });
+            // 存储该服务商获取到的模型列表，下次切换回来还能用
+            await storage.setSetting(`provider_models_${providerSelect.value}`, JSON.stringify(modelList));
+            populateModelDatalist(modelList);
             // 自动填入第一个模型到输入框
             if (modelInput && modelList[0]) {
                 modelInput.value = modelList[0].id || modelList[0];
+                await saveCurrentProviderSettings();
             }
             alert(`Fetched ${modelList.length} models`);
         } else {
@@ -488,24 +485,17 @@ window.addEventListener('load', async () => {
     await storage.init();
     await migrateFromCookies();
 
-    if (apiKeyInput) {
-        apiKeyInput.value = await storage.getSetting('api_key') || '';
-        if (!apiKeyInput.value && rightPanel) rightPanel.classList.add('open');
-    }
+    const savedProvider = await storage.getSetting('provider') || 'openai';
+    if (providerSelect) providerSelect.value = savedProvider;
 
-    if (providerSelect) providerSelect.value = await storage.getSetting('provider') || 'openai';
-    if (baseUrlInput) baseUrlInput.value = await storage.getSetting('baseUrl') || 'https://api.openai.com/v1';
-    if (modelInput) {
-        modelInput.value = await storage.getSetting('model') || 'gpt-3.5-turbo';
-        model = modelInput.value;
-    }
+    await loadProviderSettings(savedProvider);
 
     currentTopicId = await storage.getSetting('currentTopicId');
     if (currentTopicId) switchTopic(currentTopicId);
     else loadTopics();
 
     loadPrompts();
-    setColorMode(await storage.getSetting('theme') || 'system');
+    setColorMode(await storage.getSetting('theme-select') || 'system');
 
     // Register Service Worker
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
@@ -513,51 +503,73 @@ window.addEventListener('load', async () => {
     selectLanguage();
 });
 
-// Event Listeners for Persistence
-[apiKeyInput, baseUrlInput, modelInput, providerSelect, themeSelect, temperatureRange, contextWindowRange].forEach(el => {
-    if (el) el.addEventListener('change', async () => {
-        const key = el.id.replace(/-([a-z])/g, g => g[1].toUpperCase()).replace('Input','').replace('Select','').replace('Range','');
-        await storage.setSetting(el.id === 'api-key-input' ? 'api_key' : el.id, el.value);
-        if (el.id === 'theme-select') setColorMode(el.value);
+// Per-provider defaults
+const providerDefaults = {
+    'openai':    { url: 'https://api.openai.com/v1',                    models: ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'] },
+    'nvidia':    { url: 'https://integrate.api.nvidia.com/v1',           models: ['meta/llama3-70b-instruct', 'nvidia/llama-3.1-405b-instruct', 'mistralai/mixtral-8x7b-instruct-v0.1'] },
+    'anthropic': { url: 'https://api.anthropic.com/v1',                  models: ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'] },
+    'google':    { url: 'https://generativelanguage.googleapis.com/v1beta', models: ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'] },
+    'groq':      { url: 'https://api.groq.com/openai/v1',               models: ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768'] },
+    'mistral':   { url: 'https://api.mistral.ai/v1',                     models: ['mistral-large-latest', 'mistral-medium-latest', 'open-mixtral-8x22b'] },
+    'lmstudio':  { url: 'http://localhost:1234/v1',                      models: ['luna-ai-llama2', 'mistral-7b-instruct'] },
+    'ollama':    { url: 'http://localhost:11434/v1',                     models: ['llama3', 'mistral', 'phi3'] },
+    'litellm':   { url: 'http://localhost:4000/v1',                      models: ['gpt-3.5-turbo', 'claude-3-haiku'] },
+    'custom':    { url: '',                                               models: [] }
+};
 
-        if (el.id === 'provider-select') {
-            const defaults = {
-                'openai': 'https://api.openai.com/v1',
-                'nvidia': 'https://integrate.api.nvidia.com/v1',
-                'anthropic': 'https://api.anthropic.com/v1',
-                'google': 'https://generativelanguage.googleapis.com/v1beta',
-                'groq': 'https://api.groq.com/openai/v1',
-                'mistral': 'https://api.mistral.ai/v1',
-                'lmstudio': 'http://localhost:1234/v1',
-                'ollama': 'http://localhost:11434/v1',
-                'litellm': 'http://localhost:4000/v1'
-            };
-            const modelDefaults = {
-                'openai': ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
-                'nvidia': ['meta/llama3-70b-instruct', 'nvidia/llama-3.1-405b-instruct', 'mistralai/mixtral-8x7b-instruct-v0.1'],
-                'anthropic': ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],
-                'google': ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'],
-                'groq': ['llama3-70b-8192', 'llama3-8b-8192', 'mixtral-8x7b-32768'],
-                'mistral': ['mistral-large-latest', 'mistral-medium-latest', 'open-mixtral-8x22b'],
-                'ollama': ['llama3', 'mistral', 'phi3'],
-                'lmstudio': ['luna-ai-llama2', 'mistral-7b-instruct'],
-                'litellm': ['gpt-3.5-turbo', 'claude-3-haiku']
-            };
-            if (defaults[el.value]) {
-                baseUrlInput.value = defaults[el.value];
-                await storage.setSetting('baseUrl', baseUrlInput.value);
-            }
-            if (modelDefaults[el.value]) {
-                modelOptions.innerHTML = '';
-                modelDefaults[el.value].forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m;
-                    modelOptions.appendChild(opt);
-                });
-                modelInput.value = modelDefaults[el.value][0];
-                await storage.setSetting('model', modelInput.value);
-            }
-        }
+// Save current provider's settings before switching
+async function saveCurrentProviderSettings() {
+    const provider = providerSelect.value;
+    if (!provider) return;
+    await storage.setSetting(`provider_apikey_${provider}`, apiKeyInput.value);
+    await storage.setSetting(`provider_url_${provider}`, baseUrlInput.value);
+    await storage.setSetting(`provider_model_${provider}`, modelInput.value);
+}
+
+// Load a provider's saved settings (or defaults)
+async function loadProviderSettings(provider) {
+    const savedKey = await storage.getSetting(`provider_apikey_${provider}`) || '';
+    const def = providerDefaults[provider] || { url: '', models: [] };
+    const savedUrl = await storage.getSetting(`provider_url_${provider}`) || def.url;
+    const savedModel = await storage.getSetting(`provider_model_${provider}`) || def.models[0] || '';
+
+    apiKeyInput.value = savedKey;
+    baseUrlInput.value = savedUrl;
+
+    // Populate datalist with defaults, preserving any previously fetched models
+    const savedModelsJson = await storage.getSetting(`provider_models_${provider}`);
+    let modelList = savedModelsJson ? JSON.parse(savedModelsJson) : def.models;
+    populateModelDatalist(modelList);
+    modelInput.value = savedModel;
+}
+
+function populateModelDatalist(modelList) {
+    modelOptions.innerHTML = '';
+    modelList.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = typeof m === 'string' ? m : m.id;
+        modelOptions.appendChild(opt);
+    });
+}
+
+// Event Listeners for Persistence
+if (providerSelect) providerSelect.addEventListener('change', async () => {
+    await saveCurrentProviderSettings();
+    const provider = providerSelect.value;
+    await storage.setSetting('provider', provider);
+    await loadProviderSettings(provider);
+});
+
+[apiKeyInput, baseUrlInput, modelInput].forEach(el => {
+    if (el) el.addEventListener('change', async () => {
+        await saveCurrentProviderSettings();
+    });
+});
+
+[themeSelect, temperatureRange, contextWindowRange].forEach(el => {
+    if (el) el.addEventListener('change', async () => {
+        await storage.setSetting(el.id, el.value);
+        if (el.id === 'theme-select') setColorMode(el.value);
     });
 });
 
