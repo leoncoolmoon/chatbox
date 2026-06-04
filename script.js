@@ -40,7 +40,7 @@ const mobileSettingsBtn = document.getElementById('mobile-settings-button');
 const closeSettingsBtn = document.getElementById('close-settings');
 const closeSidebarBtn = document.getElementById('close-sidebar');
 const sidebar = document.getElementById('sidebar');
-const rightPanel = document.getElementById('right-panel');
+const rightPanel = document.getElementById('settings-section');
 
 var currentTopicId = null;
 var currentMessageId = null;
