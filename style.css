@@ -221,7 +221,37 @@ body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: relative;  /* 作为 settings-section 绝对定位的基准 */
+  overflow: hidden;    /* 不再需要 overflow-y: auto，由各子区域自己处理 */
+}
+
+/* Tree 区域占满全部高度 */
+#tree-section {
+  padding: 15px;
+  border-bottom: none;
+  height: 100%;
   overflow-y: auto;
+}
+
+/* Settings 浮层：覆盖在 tree-section 上方 */
+#settings-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--right-panel-bg);
+  overflow-y: auto;
+  z-index: 10;
+  transition: opacity 0.2s, visibility 0.2s;
+  opacity: 1;
+  visibility: visible;
+}
+
+#settings-section.collapsed {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .setting-group {
@@ -270,14 +300,6 @@ button:hover {
   margin: 5px 0;
 }
 
-/* Tree Visualization */
-#tree-section {
-  padding: 15px;
-  border-bottom: 1px solid var(--input-border);
-  max-height: 40%;
-  overflow-y: auto;
-}
-
 .tree-node {
   padding: 6px 10px;
   margin: 4px 0;
@@ -305,6 +327,10 @@ button:hover {
   width: 0;
   overflow: hidden;
   border-right: none;
+}
+
+#settings-section.collapsed {
+  display: none;
 }
 
 #right-panel.collapsed {

@@ -40,7 +40,7 @@ const mobileSettingsBtn = document.getElementById('mobile-settings-button');
 const closeSettingsBtn = document.getElementById('close-settings');
 const closeSidebarBtn = document.getElementById('close-sidebar');
 const sidebar = document.getElementById('sidebar');
-const rightPanel = document.getElementById('settings-section');
+const rightPanel = document.getElementById('right-panel');
 
 var currentTopicId = null;
 var currentMessageId = null;
@@ -59,6 +59,21 @@ var model = "gpt-3.5-turbo";
 var temperature = 0.7;
 var contextWindow = 10;
 var uploadedFilesContent = "";
+var bestAssistant = "You are a helpful assistant. You can help me by answering my questions. You can also ask me questions.";
+
+// iSaid: bridge for voice/other callers → chat
+iSaid = (content) => {
+    chat([{ role: "user", content: content }]);
+};
+
+// System prompt textarea
+const systemPromptInput = document.getElementById('system-prompt-input');
+if (systemPromptInput) {
+    systemPromptInput.addEventListener('change', async () => {
+        bestAssistant = systemPromptInput.value;
+        await storage.setSetting('systemPrompt', bestAssistant);
+    });
+}
 
 // Time formatting
 function getTimestamp(date) {
@@ -85,22 +100,15 @@ const isMobile = () => window.innerWidth <= 768;
 
 if (menuToggle) menuToggle.onclick = () => {
     if (isMobile()) sidebar.classList.toggle('open');
-    else sidebar.classList.remove('collapsed');
+    else sidebar.classList.toggle('collapsed');
 };
 
 if (mobileSettingsBtn) mobileSettingsBtn.onclick = () => {
+    // 无论桌面还是移动，⚙️ 只控制 settings-section 的显示
+    const settingsSection = document.getElementById('settings-section');
+    if (settingsSection) settingsSection.classList.toggle('collapsed');
+    // 移动端同时确保 right-panel 打开
     if (isMobile()) rightPanel.classList.add('open');
-    else rightPanel.classList.remove('collapsed');
-};
-
-if (closeSettingsBtn) closeSettingsBtn.onclick = () => {
-    if (isMobile()) rightPanel.classList.remove('open');
-    else rightPanel.classList.add('collapsed');
-};
-
-if (closeSidebarBtn) closeSidebarBtn.onclick = () => {
-    if (isMobile()) sidebar.classList.remove('open');
-    else sidebar.classList.add('collapsed');
 };
 
 // Core Chat
@@ -127,7 +135,7 @@ async function chat(message) {
 
   // System Prompt
   if (messagesToSend.length === 0 || messagesToSend[0].role !== "system") {
-    messagesToSend.unshift({ role: "system", content: "You are a helpful assistant." });
+    messagesToSend.unshift({ role: "system", content: bestAssistant });
   }
 
   // Uploaded Files
@@ -149,7 +157,7 @@ async function chat(message) {
   const convIndex = Date.now();
   const userDiv = document.createElement('div');
   userDiv.className = 'userdiv';
-  userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())}</p><p class="userText">${filterXSS(transcript)}</p>`;
+  userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())} — Double-click to branch</p><p class="userText">${filterXSS(transcript)}</p>`;
   conversationDisplay.appendChild(userDiv);
 
   const botDiv = document.createElement('div');
@@ -311,11 +319,39 @@ function renderMessages(messages) {
         if (msg.role === 'system') return;
         const div = document.createElement('div');
         div.className = msg.role === 'user' ? 'userdiv' : 'botdiv';
-        div.innerHTML = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}</p>`
+        div.innerHTML = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
             + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}</p>`;
+        if (msg.role === 'user') {
+            div.ondblclick = () => editQ(msg.id);
+        }
         conversationDisplay.appendChild(div);
     });
     conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
+}
+
+// Edit a past user message: truncate history from that point and re-ask
+async function editQ(messageId) {
+    const messages = await storage.getAllMessagesByTopic(currentTopicId);
+    const msg = messages.find(m => m.id === messageId);
+    if (!msg || msg.role !== 'user') return;
+
+    const changedPrompt = prompt(
+        "Edit to create a new branch (original branch is preserved):",
+        msg.content
+    );
+    if (changedPrompt === null || !changedPrompt.trim()) return;
+    if (changedPrompt.trim() === msg.content.trim()) {
+        alert("Same as original — no new branch created.");
+        return;
+    }
+
+    // Set currentMessageId to the PARENT of the double-clicked message
+    // so the new message branches from the same point
+    currentMessageId = msg.parentId || null;
+
+    // Send the new prompt — this will create a new child from the same parent,
+    // leaving the original branch fully intact in the tree
+    iSaid(changedPrompt.trim());
 }
 
 // Topics
@@ -491,6 +527,17 @@ window.addEventListener('load', async () => {
     await storage.init();
     await migrateFromCookies();
 
+    // Settings 默认收起，tree-section 占满
+    const settingsSection = document.getElementById('settings-section');
+    if (settingsSection) settingsSection.classList.add('collapsed');
+
+    // Restore system prompt
+    const savedSystemPrompt = await storage.getSetting('systemPrompt');
+    if (savedSystemPrompt) {
+        bestAssistant = savedSystemPrompt;
+        if (systemPromptInput) systemPromptInput.value = savedSystemPrompt;
+    }
+
     const savedProvider = await storage.getSetting('provider') || 'openai';
     if (providerSelect) providerSelect.value = savedProvider;
 
@@ -631,12 +678,88 @@ function setColorMode(mode) {
     document.documentElement.setAttribute('data-theme', theme);
 }
 
-if (enterPromoteButton) enterPromoteButton.onclick = () => {
-    if (promptInput.value.trim()) {
-        chat([{ role: "user", content: promptInput.value }]);
-        promptInput.value = "";
+if (enterPromoteButton) {
+    // Left click: send message
+    enterPromoteButton.onclick = () => {
+        if (promptInput.value.trim()) {
+            chat([{ role: "user", content: promptInput.value }]);
+            promptInput.value = "";
+        }
+    };
+    // Right click: clear topic history (like original)
+    enterPromoteButton.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (confirm("Clear conversation history for this topic?")) {
+            if (currentTopicId) {
+                storage.db.transaction(['messages'], 'readwrite')
+                    .objectStore('messages').index('topicId')
+                    .openCursor(IDBKeyRange.only(currentTopicId)).onsuccess = function(ev) {
+                        const cursor = ev.target.result;
+                        if (cursor) { cursor.delete(); cursor.continue(); }
+                        else {
+                            currentMessageId = null;
+                            conversationDisplay.innerHTML = '';
+                            updateTree();
+                        }
+                    };
+            }
+        }
+    });
+}
+
+// promptInput: Ctrl+Enter to send, ↑ to browse history
+var _historyDisplayIndex = -1;
+var _tempHistory = "";
+if (promptInput) {
+    promptInput.addEventListener('keyup', (e) => {
+        if (e.key === "Enter" && e.ctrlKey) {
+            if (promptInput.value.trim()) {
+                chat([{ role: "user", content: promptInput.value }]);
+                promptInput.value = "";
+                _historyDisplayIndex = -1;
+            }
+        }
+        // ↑ at start of input: browse sent messages
+        if (e.key === "ArrowUp" && promptInput.selectionStart === 0) {
+            e.preventDefault();
+            storage.getAllMessagesByTopic(currentTopicId).then(messages => {
+                const userMsgs = messages.filter(m => m.role === 'user');
+                if (userMsgs.length === 0) return;
+                if (_historyDisplayIndex === -1) _tempHistory = promptInput.value;
+                _historyDisplayIndex = Math.min(_historyDisplayIndex + 1, userMsgs.length - 1);
+                promptInput.value = userMsgs[userMsgs.length - 1 - _historyDisplayIndex].content;
+                promptInput.setSelectionRange(0, 0);
+            });
+        }
+        // ↓ to return toward current input
+        if (e.key === "ArrowDown" && promptInput.selectionStart === 0 && _historyDisplayIndex >= 0) {
+            e.preventDefault();
+            _historyDisplayIndex--;
+            if (_historyDisplayIndex < 0) {
+                promptInput.value = _tempHistory;
+            } else {
+                storage.getAllMessagesByTopic(currentTopicId).then(messages => {
+                    const userMsgs = messages.filter(m => m.role === 'user');
+                    promptInput.value = userMsgs[userMsgs.length - 1 - _historyDisplayIndex].content;
+                });
+            }
+        }
+    });
+}
+
+// Ctrl+A: select all conversation text
+window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === "a" && document.activeElement !== promptInput) {
+        e.preventDefault();
+        window.getSelection().selectAllChildren(conversationDisplay);
     }
-};
+});
+
+// Right-click voice checkbox: read entire conversation aloud
+if (voiceAnswer) voiceAnswer.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    tts(conversationDisplay.textContent);
+});
 
 // Export/Import
 if (exportSettingsBtn) exportSettingsBtn.onclick = async () => {
@@ -675,6 +798,59 @@ if (settingsImportFile) settingsImportFile.onchange = (e) => {
     reader.readAsText(file);
 };
 
+
+// Clear: 清空当前 topic 的对话显示和消息记录
+if (clearButton) {
+    clearButton.addEventListener('click', () => {
+        if (!currentTopicId) {
+            conversationDisplay.innerHTML = '';
+            return;
+        }
+        if (!confirm('Clear all messages in this topic?')) return;
+        const tx = storage.db.transaction(['messages'], 'readwrite');
+        const store = tx.objectStore('messages');
+        const index = store.index('topicId');
+        index.openCursor(IDBKeyRange.only(currentTopicId)).onsuccess = function(e) {
+            const cursor = e.target.result;
+            if (cursor) { cursor.delete(); cursor.continue(); }
+            else {
+                currentMessageId = null;
+                conversationDisplay.innerHTML = '';
+                updateTree();
+            }
+        };
+    });
+    // 右键清空全部 topic 历史（原版右键清空 historyList 的对应行为）
+    clearButton.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (!confirm('Clear ALL topics and messages? This cannot be undone.')) return;
+        const txM = storage.db.transaction(['messages'], 'readwrite');
+        txM.objectStore('messages').clear();
+        const txT = storage.db.transaction(['topics'], 'readwrite');
+        txT.objectStore('topics').clear().onsuccess = () => {
+            currentTopicId = null;
+            currentMessageId = null;
+            conversationDisplay.innerHTML = '';
+            topicList.innerHTML = '';
+            if (treeContainer) treeContainer.innerHTML = '';
+        };
+    });
+}
+ 
+// Save: 把当前对话导出为 txt 文件（同原版）
+if (saveButton) {
+    saveButton.addEventListener('click', () => {
+        const text = conversationDisplay.innerText || conversationDisplay.textContent;
+        if (!text.trim()) { alert('Nothing to save.'); return; }
+        const link = document.createElement('a');
+        const file = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        link.href = URL.createObjectURL(file);
+        link.download = 'chatBox_' + getTimestamp(new Date()).replace(/[:\[\] ]/g, '_') + '.txt';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    });
+}
+
 if (exportHistoryBtn) exportHistoryBtn.onclick = async () => {
     const topics = await new Promise(r => storage.db.transaction(['topics']).objectStore('topics').getAll().onsuccess = e => r(e.target.result));
     const messages = await new Promise(r => storage.db.transaction(['messages']).objectStore('messages').getAll().onsuccess = e => r(e.target.result));
@@ -708,7 +884,63 @@ if (historyImportFile) historyImportFile.onchange = (e) => {
     reader.readAsText(file);
 };
 
-// TTS 语音列表（异步加载）
+// ── STT（语音识别）──────────────────────────────────────────
+if (startRecognitionButton) {
+    // Right-click: show debug info (storage keys)
+    startRecognitionButton.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        storage.db.transaction(['settings']).objectStore('settings').getAllKeys().onsuccess = ev => {
+            alert('Storage keys: ' + ev.target.result.join(', '));
+        };
+    });
+
+    startRecognitionButton.addEventListener('click', function() {
+        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!window.SpeechRecognition) {
+            alert('您的浏览器不支持语音识别，请使用 Chrome 或 Edge。');
+            return;
+        }
+
+        const recognition = new window.SpeechRecognition();
+        recognition.lang = languageSelect ? languageSelect.value : navigator.language;
+
+        if (startRecognitionButton.textContent !== startTalk) {
+            // 当前是录音中 → 停止
+            recognition.stop();
+            startRecognitionButton.textContent = startTalk;
+        } else {
+            // 当前是待机 → 开始录音
+            recognition.addEventListener('result', e => {
+                const transcript = Array.from(e.results)
+                    .map(result => result[0])
+                    .map(result => result.transcript)
+                    .join('');
+
+                // 识别结果填入输入框并直接发送
+                if (transcript.trim()) {
+                    chat([{ role: 'user', content: transcript }]);
+                }
+            });
+
+            recognition.addEventListener('end', () => {
+                startRecognitionButton.textContent = startTalk;
+            });
+
+            recognition.addEventListener('error', (e) => {
+                startRecognitionButton.textContent = startTalk;
+                if (e.error === 'not-allowed') {
+                    alert('麦克风权限被拒绝，请在浏览器地址栏左侧允许麦克风访问。');
+                }
+            });
+
+            recognition.start();
+            startRecognitionButton.textContent = stopTalk;
+        }
+    });
+}
+
+// ── TTS（语音合成）──────────────────────────────────────────
+
 let _ttsVoices = [];
 function _loadVoices() {
     _ttsVoices = window.speechSynthesis.getVoices();

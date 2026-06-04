@@ -21,7 +21,6 @@
         <h3 id="topicsTitle">Topics</h3>
         <div class="sidebar-controls">
           <button id="new-topic-button">+</button>
-          <button id="close-sidebar" class="mobile-only">×</button>
         </div>
       </div>
       <div id="topic-list"></div>
@@ -77,7 +76,6 @@
       <div id="settings-section">
         <div class="section-header">
           <h4 id="settingDiv">Settings</h4>
-          <button id="close-settings" class="mobile-only">×</button>
         </div>
 
         <div id="modelSetting" class="setting-group">
@@ -104,6 +102,9 @@
 
           <label for="base-url-input" id="baseUrlLabel">Base URL</label>
           <input id="base-url-input" type="text" placeholder="https://api.openai.com/v1"/>
+
+          <label for="system-prompt-input" id="systemPromptLabel">System Prompt</label>
+          <textarea id="system-prompt-input" rows="3" style="width:100%;resize:vertical;padding:8px;border-radius:6px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-color);font-family:inherit;font-size:13px;">You are a helpful assistant. You can help me by answering my questions. You can also ask me questions.</textarea>
 
           <label for="api-key-input" id="apiKeyInputLabel">API Key</label>
           <div class="input-with-toggle">

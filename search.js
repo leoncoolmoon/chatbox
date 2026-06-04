@@ -20,35 +20,37 @@ var idealcolor = ["#ffff00", "#ff00ff", "#00ffff", "#ff0000", "#00ff00", "#0000f
 function addSearch(toolDiv, targetDiv) {
     searchedDiv = targetDiv;
     uiDiv = toolDiv;
-    //create the search tool
+    // create the search tool
     const searchTool = document.createElement('div');
     searchTool.setAttribute('id', 'searchTool');
     searchTool.style.display = 'block';
     uiDiv.style.backgroundColor = "var(--toolbar-bg)";
     uiDiv.style.borderRadius = '4px';
     uiDiv.appendChild(searchTool);
-    var parentDiv = document.getElementById('app-container');
-    var originalPosition;
-    originalPosition = {
-        x: uiDiv.offsetLeft - (parentDiv ? parentDiv.offsetLeft : 0),
-        y: uiDiv.offsetTop - (parentDiv ? parentDiv.offsetTop : 0)
-    };
     //create the search tool button
     const searchToolButton = document.createElement('button');
     searchToolButton.setAttribute('id', 'searchToolButton');
     searchToolButton.innerHTML = '<img src="search.svg" title = "search" style="height:1em;"/>';
     searchToolButton.addEventListener('click', function () {
-        searchbar.style.display = searchbar.style.display == 'flex' ? 'none' : 'flex';
-        uiDiv.style.position = searchbar.style.display == 'flex' ? 'fixed' : 'relative';
-        uiDiv.style.boxShadow = searchbar.style.display == 'flex' ? 'rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em' : 'none';
-        this.innerHTML = searchbar.style.display == 'flex' ? '<img src="close.svg" title = "close" style="height:1em;"/>' : '<img src="search.svg" title="search" style="height:1em;"/>';
-        if (searchbar.style.display == 'flex') {
-            uiDiv.style.left = (parentDiv ? parentDiv.offsetLeft : 0) + 'px';
-            uiDiv.style.top = (parentDiv ? parentDiv.offsetTop : 0) + 'px';
+        const isOpen = searchbar.style.display === 'flex';
+        if (!isOpen) {
+            // 打开：记录当前在屏幕上的实际位置，然后切换为 fixed 停在原地
+            const rect = uiDiv.getBoundingClientRect();
+            uiDiv.style.position = 'fixed';
+            uiDiv.style.left = rect.left + 'px';
+            uiDiv.style.top = rect.top + 'px';
+            uiDiv.style.boxShadow = 'rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em';
+            searchbar.style.display = 'flex';
+            this.innerHTML = '<img src="close.svg" title="close" style="height:1em;"/>';
             floated = true;
         } else {
-            uiDiv.style.left = originalPosition.x + 'px';
-            uiDiv.style.top = originalPosition.y + 'px';
+            // 关闭：回到文档流，清除所有定位样式
+            uiDiv.style.position = '';
+            uiDiv.style.left = '';
+            uiDiv.style.top = '';
+            uiDiv.style.boxShadow = 'none';
+            searchbar.style.display = 'none';
+            this.innerHTML = '<img src="search.svg" title="search" style="height:1em;"/>';
             floated = false;
         }
     });
