@@ -361,17 +361,43 @@ if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
     try {
         fetchModelsBtn.textContent = "⏳";
         const response = await fetch(apiUrl, {
-            headers: { "Authorization": `Bearer ${apiKeyInput.value}` }
+            headers: {
+                "Authorization": `Bearer ${apiKeyInput.value}`,
+                "Content-Type": "application/json"
+            }
         });
+
+        // 先检查 HTTP 状态，错误时把服务端返回的错误信息显示出来
+        if (!response.ok) {
+            let errMsg = `HTTP ${response.status}`;
+            try {
+                const errData = await response.json();
+                errMsg += ': ' + (errData.message || errData.error?.message || JSON.stringify(errData));
+            } catch (_) {
+                errMsg += ': ' + await response.text().catch(() => '');
+            }
+            throw new Error(errMsg);
+        }
+
         const data = await response.json();
-        if (data.data) {
+
+        // 兼容 OpenAI 格式 (data.data[]) 和部分服务商直接返回数组的格式
+        const modelList = data.data || (Array.isArray(data) ? data : null);
+        if (modelList && modelList.length > 0) {
             modelOptions.innerHTML = '';
-            data.data.forEach(m => {
+            modelList.forEach(m => {
                 const opt = document.createElement('option');
-                opt.value = m.id;
+                opt.value = m.id || m;
+                opt.textContent = m.id || m;
                 modelOptions.appendChild(opt);
             });
-            alert(`Fetched ${data.data.length} models`);
+            // 自动填入第一个模型到输入框
+            if (modelInput && modelList[0]) {
+                modelInput.value = modelList[0].id || modelList[0];
+            }
+            alert(`Fetched ${modelList.length} models`);
+        } else {
+            alert("No models found in response. Response: " + JSON.stringify(data).slice(0, 200));
         }
     } catch (e) {
         if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
