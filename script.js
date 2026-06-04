@@ -544,9 +544,12 @@ function applyProviderUI(provider) {
     }
 }
 
-// 保存当前服务商的设置
-async function saveCurrentProviderSettings() {
-    const provider = providerSelect ? providerSelect.value : null;
+// 记录上一个服务商，用于切换时正确保存
+let _previousProvider = null;
+
+// 保存指定服务商的设置（不传则用当前选中值）
+async function saveCurrentProviderSettings(providerOverride) {
+    const provider = providerOverride || (providerSelect ? providerSelect.value : null);
     if (!provider) return;
     if (apiKeyInput)  await storage.setSetting(`provider_apikey_${provider}`, apiKeyInput.value);
     if (baseUrlInput) await storage.setSetting(`provider_url_${provider}`, baseUrlInput.value);
@@ -558,12 +561,12 @@ async function loadProviderSettings(provider) {
     const def = PROVIDERS[provider] || { url: '', models: [], needsKey: 'optional', hint: '' };
 
     const savedKey   = await storage.getSetting(`provider_apikey_${provider}`) || '';
-    // 只有用户曾经手动改过 URL，才恢复；否则始终用该服务商的默认 URL
     const savedUrl   = await storage.getSetting(`provider_url_${provider}`);
     const savedModel = await storage.getSetting(`provider_model_${provider}`) || def.models[0] || '';
 
     if (apiKeyInput)  apiKeyInput.value  = savedKey;
-    if (baseUrlInput) baseUrlInput.value = savedUrl || def.url;
+    // 如果从未存过该服务商的 URL，始终用默认值
+    if (baseUrlInput) baseUrlInput.value = (savedUrl !== null && savedUrl !== undefined && savedUrl !== '') ? savedUrl : def.url;
 
     // 填充模型列表：优先用上次获取到的完整列表，没有则用默认
     const savedModelsJson = await storage.getSetting(`provider_models_${provider}`);
@@ -573,6 +576,8 @@ async function loadProviderSettings(provider) {
 
     // 更新 API Key 显示状态
     applyProviderUI(provider);
+
+    _previousProvider = provider;
 }
 
 function populateModelDatalist(modelList) {
@@ -585,15 +590,16 @@ function populateModelDatalist(modelList) {
     });
 }
 
-// 切换服务商：先存当前 → 加载新的
+// 切换服务商：先把当前设置存到【旧服务商】，再加载新的
 if (providerSelect) providerSelect.addEventListener('change', async () => {
-    await saveCurrentProviderSettings();
+    // change 触发时 value 已是新值，用 _previousProvider 保存旧的
+    if (_previousProvider) await saveCurrentProviderSettings(_previousProvider);
     const provider = providerSelect.value;
     await storage.setSetting('provider', provider);
     await loadProviderSettings(provider);
 });
 
-// URL / Key / Model 变动时实时保存
+// URL / Key / Model 变动时实时保存到当前服务商
 [apiKeyInput, baseUrlInput, modelInput].forEach(el => {
     if (el) el.addEventListener('change', async () => {
         await saveCurrentProviderSettings();
