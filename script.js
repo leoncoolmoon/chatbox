@@ -289,10 +289,38 @@ async function updateTree() {
 }
 
 function renderTreeNode(node, container, level = 0) {
+    const isRoot = level === 0;
+
+    // Wrapper: provides the vertical rail + horizontal connector via CSS
+    const wrapper = document.createElement('div');
+    wrapper.className = isRoot ? 'tree-root-wrapper' : 'tree-node-wrapper';
+
+    // Node pill
     const div = document.createElement('div');
-    div.className = 'tree-node' + (node.id === currentMessageId ? ' active' : '') + (selectedContextIds.has(node.id) ? ' selected' : '');
-    div.style.marginLeft = (level * 12) + 'px';
-    div.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content.substring(0, 25);
+    div.className = 'tree-node'
+        + (node.id === currentMessageId ? ' active' : '')
+        + (selectedContextIds.has(node.id) ? ' selected' : '');
+
+    const hasChildren = node.children && node.children.length > 0;
+
+    // Collapse toggle (only when there are children)
+    if (hasChildren) {
+        const toggle = document.createElement('span');
+        toggle.className = 'tree-toggle';
+        toggle.textContent = '−';
+        toggle.onclick = (e) => {
+            e.stopPropagation();
+            const kids = wrapper.querySelector('.tree-children');
+            const collapsed = kids.classList.toggle('collapsed');
+            toggle.textContent = collapsed ? '+' : '−';
+        };
+        div.appendChild(toggle);
+    }
+
+    // Role icon + label
+    const label = document.createElement('span');
+    label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content.substring(0, 28);
+    div.appendChild(label);
 
     div.onclick = async (e) => {
         if (e.ctrlKey || e.metaKey) {
@@ -309,8 +337,17 @@ function renderTreeNode(node, container, level = 0) {
         }
     };
 
-    container.appendChild(div);
-    node.children.forEach(child => renderTreeNode(child, container, level + 1));
+    wrapper.appendChild(div);
+
+    // Recursively render children inside a collapsible container
+    if (hasChildren) {
+        const childContainer = document.createElement('div');
+        childContainer.className = 'tree-children';
+        node.children.forEach(child => renderTreeNode(child, childContainer, level + 1));
+        wrapper.appendChild(childContainer);
+    }
+
+    container.appendChild(wrapper);
 }
 
 function renderMessages(messages) {

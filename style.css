@@ -450,3 +450,115 @@ button:hover {
   flex: 1;
   min-width: 120px;
 }
+
+/* ===== Conversation Tree — branch lines ===== */
+
+#tree-container {
+  padding: 10px 10px 10px 16px;
+  font-size: 13px;
+}
+
+/* Each node wrapper provides the vertical guide rail */
+.tree-node-wrapper {
+  position: relative;
+  padding-left: 20px;
+}
+
+/* The vertical line running down through children */
+.tree-node-wrapper::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background-color: var(--input-border);
+}
+
+/* Hide the rail on the last child so it doesn't overshoot */
+.tree-node-wrapper:last-child::before {
+  height: 22px; /* just reach the horizontal connector */
+}
+
+/* Horizontal connector from rail to node */
+.tree-node-wrapper::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 19px;   /* vertically centred on a ~38px node */
+  width: 14px;
+  height: 1.5px;
+  background-color: var(--input-border);
+}
+
+/* Root-level wrappers have no indent or connectors */
+.tree-root-wrapper {
+  position: relative;
+  padding-left: 0;
+}
+
+.tree-root-wrapper::before,
+.tree-root-wrapper::after {
+  display: none;
+}
+
+/* Node pill */
+.tree-node {
+  position: relative;
+  padding: 6px 10px;
+  margin: 3px 0;
+  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid var(--input-border);
+  background-color: var(--bg-color);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.tree-node:hover {
+  background-color: var(--active-item-bg);
+  border-color: var(--accent-color);
+}
+
+.tree-node.active {
+  background-color: var(--active-item-bg);
+  border-left: 3px solid var(--accent-color);
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+/* Small dot on the rail where the horizontal branch starts */
+.tree-node-wrapper::after {
+  border-radius: 0 1px 1px 0;
+}
+
+/* Collapse toggle button inside the node label area */
+.tree-toggle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+  text-align: center;
+  font-size: 10px;
+  border-radius: 3px;
+  background: var(--input-border);
+  color: var(--text-color);
+  margin-right: 5px;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Children container */
+.tree-children {
+  overflow: hidden;
+  transition: max-height 0.2s ease;
+}
+
+.tree-children.collapsed {
+  display: none;
+}
