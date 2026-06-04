@@ -81,20 +81,26 @@ if (showKeyBtn) showKeyBtn.onclick = () => {
     apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
 };
 
+const isMobile = () => window.innerWidth <= 768;
+
 if (menuToggle) menuToggle.onclick = () => {
-    sidebar.classList.toggle('open');
+    if (isMobile()) sidebar.classList.toggle('open');
+    else sidebar.classList.remove('collapsed');
 };
 
 if (mobileSettingsBtn) mobileSettingsBtn.onclick = () => {
-    rightPanel.classList.add('open');
+    if (isMobile()) rightPanel.classList.add('open');
+    else rightPanel.classList.remove('collapsed');
 };
 
 if (closeSettingsBtn) closeSettingsBtn.onclick = () => {
-    rightPanel.classList.remove('open');
+    if (isMobile()) rightPanel.classList.remove('open');
+    else rightPanel.classList.add('collapsed');
 };
 
 if (closeSidebarBtn) closeSidebarBtn.onclick = () => {
-    sidebar.classList.remove('open');
+    if (isMobile()) sidebar.classList.remove('open');
+    else sidebar.classList.add('collapsed');
 };
 
 // Core Chat
@@ -702,13 +708,45 @@ if (historyImportFile) historyImportFile.onchange = (e) => {
     reader.readAsText(file);
 };
 
+// TTS 语音列表（异步加载）
+let _ttsVoices = [];
+function _loadVoices() {
+    _ttsVoices = window.speechSynthesis.getVoices();
+}
+window.speechSynthesis.onvoiceschanged = _loadVoices;
+_loadVoices();
+
 function tts(text) {
     const synth = window.speechSynthesis;
+    synth.cancel(); // 停止上一句
     const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = parseFloat(rate.value);
-    utter.pitch = parseFloat(pitch.value);
+
+    // 语速和语调：读取 slider 当前值，fallback 到默认
+    utter.rate  = rate  ? parseFloat(rate.value)  : 1.0;
+    utter.pitch = pitch ? parseFloat(pitch.value) : 1.0;
+
+    // 语言：优先用用户在 UI 里选的，fallback 到浏览器语言
+    const lang = (languageSelect && languageSelect.value) || navigator.language || 'en';
+    utter.lang = lang;
+
+    // 从已加载的 voices 里找第一个匹配语言的声音
+    if (_ttsVoices.length > 0) {
+        // 先精确匹配（如 zh-CN），再匹配语言前缀（如 zh）
+        const exact  = _ttsVoices.find(v => v.lang === lang);
+        const prefix = _ttsVoices.find(v => v.lang.startsWith(lang.split('-')[0]));
+        if (exact || prefix) utter.voice = exact || prefix;
+    }
+
     synth.speak(utter);
 }
+
+// rate / pitch slider 实时更新显示值
+if (rate) rate.addEventListener('input', () => {
+    if (rateValue) rateValue.textContent = parseFloat(rate.value).toFixed(1);
+});
+if (pitch) pitch.addEventListener('input', () => {
+    if (pitchValue) pitchValue.textContent = parseFloat(pitch.value).toFixed(1);
+});
 
 function selectLanguage() {
   var lang = navigator.language || navigator.userLanguage;

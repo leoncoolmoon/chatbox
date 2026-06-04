@@ -300,9 +300,31 @@ button:hover {
   outline: 1px dashed #fdd835;
 }
 
-/* Responsive Rules */
+/* 桌面端收起状态 */
+#sidebar.collapsed {
+  width: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+#right-panel.collapsed {
+  width: 0;
+  overflow: hidden;
+  border-left: none;
+}
+
+/* 关闭按钮在所有屏幕尺寸都显示 */
 .mobile-only {
-  display: none;
+  display: block;
+}
+
+/* 桌面端：sidebar 和 right-panel 默认展开，但支持收起 */
+#sidebar {
+  transition: width 0.3s, transform 0.3s;
+}
+
+#right-panel {
+  transition: width 0.3s, transform 0.3s;
 }
 
 @media (max-width: 768px) {
@@ -333,10 +355,6 @@ button:hover {
 
   #right-panel.open {
     transform: translateX(0);
-  }
-
-  .mobile-only {
-    display: block;
   }
 
   #main-content {
