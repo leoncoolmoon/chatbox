@@ -254,6 +254,14 @@ body {
   pointer-events: none;
 }
 
+.section-header {
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--input-border);
+}
+
 .setting-group {
   padding: 15px;
   border-bottom: 1px solid var(--input-border);
@@ -339,9 +347,9 @@ button:hover {
   border-left: none;
 }
 
-/* 关闭按钮在所有屏幕尺寸都显示 */
+/* 仅在移动界面显示 */
 .mobile-only {
-  display: block;
+  display: none;
 }
 
 /* 桌面端：sidebar 和 right-panel 默认展开，但支持收起 */
@@ -354,6 +362,10 @@ button:hover {
 }
 
 @media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+
   #sidebar {
     position: fixed;
     left: -260px;
