@@ -111,6 +111,14 @@ if (mobileSettingsBtn) mobileSettingsBtn.onclick = () => {
     if (isMobile()) rightPanel.classList.add('open');
 };
 
+if (closeSidebarBtn) closeSidebarBtn.onclick = () => {
+    sidebar.classList.remove('open');
+};
+
+if (closeSettingsBtn) closeSettingsBtn.onclick = () => {
+    rightPanel.classList.remove('open');
+};
+
 // Core Chat
 async function chat(message) {
   if (!apiKeyInput.value) {
