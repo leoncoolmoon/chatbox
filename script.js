@@ -38,6 +38,7 @@ const fetchModelsBtn = document.getElementById('fetch-models-button');
 const menuToggle = document.getElementById('menu-toggle');
 const mobileSettingsBtn = document.getElementById('mobile-settings-button');
 const closeSettingsBtn = document.getElementById('close-settings');
+const closeTreeBtn = document.getElementById('close-tree');
 const closeSidebarBtn = document.getElementById('close-sidebar');
 const sidebar = document.getElementById('sidebar');
 const rightPanel = document.getElementById('right-panel');
@@ -116,6 +117,10 @@ if (closeSidebarBtn) closeSidebarBtn.onclick = () => {
 };
 
 if (closeSettingsBtn) closeSettingsBtn.onclick = () => {
+    rightPanel.classList.remove('open');
+};
+
+if (closeTreeBtn) closeTreeBtn.onclick = () => {
     rightPanel.classList.remove('open');
 };
 
