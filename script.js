@@ -1068,6 +1068,7 @@ function loadLanguage(lang) {
         document.getElementById("promptLibraryLabel").innerHTML = data.label14;
         document.getElementById("treeTitle").innerHTML = data.label15;
         document.getElementById("topicsTitle").innerHTML = data.label16;
+        document.getElementById("systemPromptLabel").innerHTML = data.label17;
         if (data.text6) corsErrorMsg = data.text6;
 
         newTopicButton.textContent = data.button6;
