@@ -126,7 +126,10 @@ if (closeTreeBtn) closeTreeBtn.onclick = () => {
 
 // Core Chat
 async function chat(message) {
-  if (!apiKeyInput.value) {
+  const provider = providerSelect.value;
+  const def = PROVIDERS[provider] || { needsKey: 'optional' };
+
+  if (def.needsKey === true && !apiKeyInput.value) {
     rightPanel.classList.add('open');
     alert(enterApiKey);
     return;
@@ -199,12 +202,13 @@ async function chat(message) {
   const apiUrl = baseUrl.endsWith('/') ? baseUrl + "chat/completions" : baseUrl + "/chat/completions";
 
   try {
+    const headers = { "Content-Type": "application/json" };
+    if (apiKeyInput.value) {
+        headers["Authorization"] = `Bearer ${apiKeyInput.value}`;
+    }
     const response = await fetch(apiUrl, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKeyInput.value}`
-        },
+        headers: headers,
         body: JSON.stringify({
             model: modelInput.value || model,
             messages: [...messagesToSend, { role: "user", content: transcript }],
@@ -248,12 +252,13 @@ async function autoSummarize(messages) {
     const baseUrl = baseUrlInput.value || "https://api.openai.com/v1";
     const apiUrl = baseUrl.endsWith('/') ? baseUrl + "chat/completions" : baseUrl + "/chat/completions";
     try {
+        const headers = { "Content-Type": "application/json" };
+        if (apiKeyInput.value) {
+            headers["Authorization"] = `Bearer ${apiKeyInput.value}`;
+        }
         const response = await fetch(apiUrl, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKeyInput.value}`
-            },
+            headers: headers,
             body: JSON.stringify({
                 model: modelInput.value || model,
                 messages: [...messages.slice(0, -2), { role: "user", content: "Summarize this conversation very briefly." }],
@@ -446,18 +451,22 @@ async function switchTopic(id) {
 
 // Model Fetching
 if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
-    if (!apiKeyInput.value) return alert("API Key required");
+    const provider = providerSelect.value;
+    const def = PROVIDERS[provider] || { needsKey: 'optional' };
+
+    if (def.needsKey === true && !apiKeyInput.value) {
+        return alert(enterApiKey);
+    }
     const baseUrl = baseUrlInput.value || "https://api.openai.com/v1";
     const apiUrl = baseUrl.endsWith('/') ? baseUrl + "models" : baseUrl + "/models";
 
     try {
         fetchModelsBtn.textContent = "⏳";
-        const response = await fetch(apiUrl, {
-            headers: {
-                "Authorization": `Bearer ${apiKeyInput.value}`,
-                "Content-Type": "application/json"
-            }
-        });
+        const headers = {};
+        if (apiKeyInput.value) {
+            headers["Authorization"] = `Bearer ${apiKeyInput.value}`;
+        }
+        const response = await fetch(apiUrl, { headers });
 
         // 先检查 HTTP 状态，错误时把服务端返回的错误信息显示出来
         if (!response.ok) {
@@ -490,7 +499,7 @@ if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
         }
     } catch (e) {
         if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
-            alert(corsErrorMsg);
+            alert(corsErrorMsg + " (Error: " + e.message + ")");
         } else {
             alert("Failed to fetch models: " + e.message);
         }
