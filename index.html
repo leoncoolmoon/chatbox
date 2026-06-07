@@ -133,11 +133,20 @@
 
         <div id="promptSetting" class="setting-group">
           <label id="promptLibraryLabel">Prompt Library</label>
-          <div id="prompt-list"></div>
-          <button id="add-prompt-button">Add Prompt</button>
 
-          <label for="system-prompt-input" id="systemPromptLabel" style="margin-top: 10px;">System Prompt</label>
+          <label id="promptNameLabel">Prompt Name</label>
+          <input id="prompt-name-input" type="text" />
+
+          <label for="system-prompt-input" id="systemPromptLabel">System Prompt</label>
           <textarea id="system-prompt-input" rows="3" style="width:100%;resize:vertical;padding:8px;border-radius:6px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text-color);font-family:inherit;font-size:13px;">You are a helpful assistant. You can help me by answering my questions. You can also ask me questions.</textarea>
+
+          <div id="prompt-list" style="display: none; margin: 10px 0; border: 1px solid var(--input-border); border-radius: 6px; padding: 5px;"></div>
+
+          <div class="portability-buttons" style="margin-top: 10px;">
+            <button id="select-prompt-button">Select Prompt</button>
+            <button id="save-prompt-button">Save Prompt</button>
+            <button id="delete-prompt-button">Delete Prompt</button>
+          </div>
         </div>
 
         <div id="ttsSetting" class="setting-group">
