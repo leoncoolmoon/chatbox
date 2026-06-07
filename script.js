@@ -69,12 +69,6 @@ iSaid = (content) => {
 
 // System prompt textarea
 const systemPromptInput = document.getElementById('system-prompt-input');
-if (systemPromptInput) {
-    systemPromptInput.addEventListener('change', async () => {
-        bestAssistant = systemPromptInput.value;
-        await storage.setSetting('systemPrompt', bestAssistant);
-    });
-}
 
 // Time formatting
 function getTimestamp(date) {
@@ -604,6 +598,38 @@ window.addEventListener('load', async () => {
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
     selectLanguage();
+
+    // ── Post-Init Event Listeners ───────────────────────────
+    // Attach listeners that use storage after it is initialized.
+
+    if (systemPromptInput) {
+        systemPromptInput.addEventListener('change', async () => {
+            bestAssistant = systemPromptInput.value;
+            await storage.setSetting('systemPrompt', bestAssistant);
+        });
+    }
+
+    if (providerSelect) {
+        providerSelect.addEventListener('change', async () => {
+            if (_previousProvider) await saveCurrentProviderSettings(_previousProvider);
+            const provider = providerSelect.value;
+            await storage.setSetting('provider', provider);
+            await loadProviderSettings(provider);
+        });
+    }
+
+    [apiKeyInput, baseUrlInput, modelInput].forEach(el => {
+        if (el) el.addEventListener('change', async () => {
+            await saveCurrentProviderSettings();
+        });
+    });
+
+    [themeSelect, temperatureRange, contextWindowRange].forEach(el => {
+        if (el) el.addEventListener('change', async () => {
+            await storage.setSetting(el.id, el.value);
+            if (el.id === 'theme-select') setColorMode(el.value);
+        });
+    });
 });
 
 // Per-provider config（与 LLMtester 保持一致）
@@ -699,28 +725,6 @@ function populateModelDatalist(modelList) {
     }
 }
 
-// 切换服务商：先把当前设置存到【旧服务商】，再加载新的
-if (providerSelect) providerSelect.addEventListener('change', async () => {
-    // change 触发时 value 已是新值，用 _previousProvider 保存旧的
-    if (_previousProvider) await saveCurrentProviderSettings(_previousProvider);
-    const provider = providerSelect.value;
-    await storage.setSetting('provider', provider);
-    await loadProviderSettings(provider);
-});
-
-// URL / Key / Model 变动时实时保存到当前服务商
-[apiKeyInput, baseUrlInput, modelInput].forEach(el => {
-    if (el) el.addEventListener('change', async () => {
-        await saveCurrentProviderSettings();
-    });
-});
-
-[themeSelect, temperatureRange, contextWindowRange].forEach(el => {
-    if (el) el.addEventListener('change', async () => {
-        await storage.setSetting(el.id, el.value);
-        if (el.id === 'theme-select') setColorMode(el.value);
-    });
-});
 
 function setColorMode(mode) {
     let theme = mode;
