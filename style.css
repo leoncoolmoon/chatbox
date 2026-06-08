@@ -559,7 +559,7 @@ button:hover {
   position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 6px 10px;
   margin: 3px 0;
   border-radius: 6px;
@@ -574,7 +574,7 @@ button:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
+  /*flex: 1;*/
 }
 
 .tree-node:hover {
@@ -583,7 +583,7 @@ button:hover {
 }
 
 .tree-delete-btn {
-  margin-left: 8px;
+  margin-left: auto;
   font-size: 14px;
   color: #888;
   cursor: pointer;
