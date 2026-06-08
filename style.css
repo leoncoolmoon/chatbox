@@ -480,6 +480,15 @@ button:hover {
   padding-left: 20px;
 }
 
+.tree-node-wrapper.no-indent {
+  padding-left: 0;
+}
+
+.tree-node-wrapper.no-indent::before,
+.tree-node-wrapper.no-indent::after {
+  display: none;
+}
+
 /* The vertical line running down through children */
 .tree-node-wrapper::before {
   content: "";

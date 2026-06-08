@@ -303,7 +303,7 @@ async function updateTree() {
     });
 
     treeContainer.innerHTML = '';
-    roots.forEach(root => renderTreeNode(root, treeContainer));
+    roots.forEach(root => renderTreeNode(root, treeContainer, 0, null));
 }
 
 async function deleteMessageUI(id) {
@@ -324,12 +324,17 @@ async function deleteMessageUI(id) {
     updateTree();
 }
 
-function renderTreeNode(node, container, level = 0) {
+function renderTreeNode(node, container, level = 0, parentRole = null) {
     const isRoot = level === 0;
+    const isAssistantFollowingUser = node.role === 'assistant' && parentRole === 'user';
 
     // Wrapper: provides the vertical rail + horizontal connector via CSS
     const wrapper = document.createElement('div');
-    wrapper.className = isRoot ? 'tree-root-wrapper' : 'tree-node-wrapper';
+    if (isRoot) {
+        wrapper.className = 'tree-root-wrapper';
+    } else {
+        wrapper.className = 'tree-node-wrapper' + (isAssistantFollowingUser ? ' no-indent' : '');
+    }
 
     // Node pill
     const div = document.createElement('div');
@@ -389,7 +394,7 @@ function renderTreeNode(node, container, level = 0) {
     if (hasChildren) {
         const childContainer = document.createElement('div');
         childContainer.className = 'tree-children';
-        node.children.forEach(child => renderTreeNode(child, childContainer, level + 1));
+        node.children.forEach(child => renderTreeNode(child, childContainer, level + 1, node.role));
         wrapper.appendChild(childContainer);
     }
 
