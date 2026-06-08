@@ -43,13 +43,7 @@ async function migrateFromCookies() {
             const history = JSON.parse(cookieMap['historyList']);
             if (Array.isArray(history) && history.length > 0) {
                 // Create a default topic
-                const transaction = storage.db.transaction(['topics'], 'readwrite');
-                const store = transaction.objectStore('topics');
-                const topicId = await new Promise((resolve, reject) => {
-                    const req = store.add({ title: 'Default Conversation', createdAt: new Date() });
-                    req.onsuccess = () => resolve(req.result);
-                    req.onerror = () => reject(req.error);
-                });
+                const topicId = await storage.addTopic({ title: 'Default Conversation', createdAt: new Date() });
 
                 for (const msg of history) {
                     await storage.addMessage({

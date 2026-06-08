@@ -420,10 +420,7 @@ async function editQ(messageId) {
 if (newTopicButton) newTopicButton.onclick = async () => {
     const title = prompt("Topic Title", "New Conversation");
     if (title) {
-        const id = await new Promise(r => {
-            const req = storage.db.transaction(['topics'], 'readwrite').objectStore('topics').add({ title, createdAt: new Date() });
-            req.onsuccess = () => r(req.result);
-        });
+        const id = await storage.addTopic({ title, createdAt: new Date() });
         await loadTopics();
         await switchTopic(id);
         if (window.innerWidth <= 768) sidebar.classList.remove('open');
@@ -431,10 +428,7 @@ if (newTopicButton) newTopicButton.onclick = async () => {
 };
 
 async function loadTopics() {
-    const topics = await new Promise(r => {
-        const req = storage.db.transaction(['topics'], 'readonly').objectStore('topics').getAll();
-        req.onsuccess = () => r(req.result);
-    });
+    const topics = await storage.getAllTopics();
     topicList.innerHTML = '';
     topics.forEach(t => {
         const div = document.createElement('div');
@@ -548,9 +542,7 @@ if (fileUpload) fileUpload.onchange = async () => {
 
 // Prompts
 async function loadPrompts() {
-    const prompts = await new Promise(r => {
-        storage.db.transaction(['prompts'], 'readonly').objectStore('prompts').getAll().onsuccess = e => r(e.target.result);
-    });
+    const prompts = await storage.getAllPrompts();
     promptListDiv.innerHTML = '';
     prompts.forEach(p => {
         const btn = document.createElement('button');
@@ -649,22 +641,14 @@ window.addEventListener('load', async () => {
                 return;
             }
 
-            const prompts = await new Promise(r => {
-                storage.db.transaction(['prompts']).objectStore('prompts').getAll().onsuccess = e => r(e.target.result);
-            });
+            const prompts = await storage.getAllPrompts();
             const existing = prompts.find(p => p.title === title);
 
             if (existing) {
                 if (!confirm(overwriteConfirm)) return;
-                await new Promise(r => {
-                    const tx = storage.db.transaction(['prompts'], 'readwrite');
-                    tx.objectStore('prompts').put({ id: existing.id, title, content }).onsuccess = () => r();
-                });
+                await storage.updatePrompt({ id: existing.id, title, content });
             } else {
-                await new Promise(r => {
-                    const tx = storage.db.transaction(['prompts'], 'readwrite');
-                    tx.objectStore('prompts').add({ title, content }).onsuccess = () => r();
-                });
+                await storage.addPrompt({ title, content });
             }
             loadPrompts();
         };
@@ -673,14 +657,10 @@ window.addEventListener('load', async () => {
     if (deletePromptButton) {
         deletePromptButton.onclick = async () => {
             const title = promptNameInput.value.trim();
-            const prompts = await new Promise(r => {
-                storage.db.transaction(['prompts']).objectStore('prompts').getAll().onsuccess = e => r(e.target.result);
-            });
+            const prompts = await storage.getAllPrompts();
             const existing = prompts.find(p => p.title === title);
             if (existing) {
-                await new Promise(r => {
-                    storage.db.transaction(['prompts'], 'readwrite').objectStore('prompts').delete(existing.id).onsuccess = () => r();
-                });
+                await storage.deletePrompt(existing.id);
             }
             promptNameInput.value = "";
             systemPromptInput.value = "";
@@ -739,8 +719,8 @@ let _previousProvider = null;
 async function saveCurrentProviderSettings(providerOverride) {
     const provider = providerOverride || (providerSelect ? providerSelect.value : null);
     if (!provider) return;
-    if (apiKeyInput)  await storage.setSetting(`provider_apikey_${provider}`, apiKeyInput.value);
-    if (baseUrlInput) await storage.setSetting(`provider_url_${provider}`, baseUrlInput.value);
+    if (apiKeyInput)  await storage.setSetting(`provider_apikey_${provider}`, apiKeyInput.value.trim());
+    if (baseUrlInput) await storage.setSetting(`provider_url_${provider}`, baseUrlInput.value.trim());
     if (modelInput)   await storage.setSetting(`provider_model_${provider}`, modelInput.value);
 }
 
@@ -800,21 +780,14 @@ if (enterPromoteButton) {
         }
     };
     // Right click: clear topic history (like original)
-    enterPromoteButton.addEventListener('contextmenu', (e) => {
+    enterPromoteButton.addEventListener('contextmenu', async (e) => {
         e.preventDefault();
         if (confirm("Clear conversation history for this topic?")) {
             if (currentTopicId) {
-                storage.db.transaction(['messages'], 'readwrite')
-                    .objectStore('messages').index('topicId')
-                    .openCursor(IDBKeyRange.only(currentTopicId)).onsuccess = function(ev) {
-                        const cursor = ev.target.result;
-                        if (cursor) { cursor.delete(); cursor.continue(); }
-                        else {
-                            currentMessageId = null;
-                            conversationDisplay.innerHTML = '';
-                            updateTree();
-                        }
-                    };
+                await storage.clearMessagesByTopic(currentTopicId);
+                currentMessageId = null;
+                conversationDisplay.innerHTML = '';
+                updateTree();
             }
         }
     });
@@ -877,9 +850,9 @@ if (voiceAnswer) voiceAnswer.addEventListener('contextmenu', (e) => {
 // Export/Import
 if (exportSettingsBtn) exportSettingsBtn.onclick = async () => {
     const settings = {};
-    const keys = await new Promise(r => storage.db.transaction(['settings']).objectStore('settings').getAllKeys().onsuccess = e => r(e.target.result));
+    const keys = await storage.getAllSettingsKeys();
     for(let k of keys) settings[k] = await storage.getSetting(k);
-    const prompts = await new Promise(r => storage.db.transaction(['prompts']).objectStore('prompts').getAll().onsuccess = e => r(e.target.result));
+    const prompts = await storage.getAllPrompts();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify({settings, prompts})], {type:'application/json'}));
     a.download = 'settings.json';
@@ -898,12 +871,10 @@ if (settingsImportFile) settingsImportFile.onchange = (e) => {
                 for (let k in data.settings) await storage.setSetting(k, data.settings[k]);
             }
             if (data.prompts) {
-                const tx = storage.db.transaction(['prompts'], 'readwrite');
-                const store = tx.objectStore('prompts');
-                data.prompts.forEach(p => {
+                for (const p of data.prompts) {
                     delete p.id;
-                    store.add(p);
-                });
+                    await storage.addPrompt(p);
+                }
             }
             location.reload();
         } catch (err) { alert("Failed to import settings"); }
@@ -914,39 +885,28 @@ if (settingsImportFile) settingsImportFile.onchange = (e) => {
 
 // Clear: 清空当前 topic 的对话显示和消息记录
 if (clearButton) {
-    clearButton.addEventListener('click', () => {
+    clearButton.addEventListener('click', async () => {
         if (!currentTopicId) {
             conversationDisplay.innerHTML = '';
             return;
         }
         if (!confirm('Clear all messages in this topic?')) return;
-        const tx = storage.db.transaction(['messages'], 'readwrite');
-        const store = tx.objectStore('messages');
-        const index = store.index('topicId');
-        index.openCursor(IDBKeyRange.only(currentTopicId)).onsuccess = function(e) {
-            const cursor = e.target.result;
-            if (cursor) { cursor.delete(); cursor.continue(); }
-            else {
-                currentMessageId = null;
-                conversationDisplay.innerHTML = '';
-                updateTree();
-            }
-        };
+        await storage.clearMessagesByTopic(currentTopicId);
+        currentMessageId = null;
+        conversationDisplay.innerHTML = '';
+        updateTree();
     });
     // 右键清空全部 topic 历史（原版右键清空 historyList 的对应行为）
-    clearButton.addEventListener('contextmenu', (e) => {
+    clearButton.addEventListener('contextmenu', async (e) => {
         e.preventDefault();
         if (!confirm('Clear ALL topics and messages? This cannot be undone.')) return;
-        const txM = storage.db.transaction(['messages'], 'readwrite');
-        txM.objectStore('messages').clear();
-        const txT = storage.db.transaction(['topics'], 'readwrite');
-        txT.objectStore('topics').clear().onsuccess = () => {
-            currentTopicId = null;
-            currentMessageId = null;
-            conversationDisplay.innerHTML = '';
-            topicList.innerHTML = '';
-            if (treeContainer) treeContainer.innerHTML = '';
-        };
+        await storage.clearMessagesByTopic(); // undefined means clear all
+        await storage.clearAllTopics();
+        currentTopicId = null;
+        currentMessageId = null;
+        conversationDisplay.innerHTML = '';
+        topicList.innerHTML = '';
+        if (treeContainer) treeContainer.innerHTML = '';
     });
 }
  
@@ -965,8 +925,8 @@ if (saveButton) {
 }
 
 if (exportHistoryBtn) exportHistoryBtn.onclick = async () => {
-    const topics = await new Promise(r => storage.db.transaction(['topics']).objectStore('topics').getAll().onsuccess = e => r(e.target.result));
-    const messages = await new Promise(r => storage.db.transaction(['messages']).objectStore('messages').getAll().onsuccess = e => r(e.target.result));
+    const topics = await storage.getAllTopics();
+    const messages = await storage.getAllMessages();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify({topics, messages})], {type:'application/json'}));
     a.download = 'chat_history.json';
@@ -982,14 +942,10 @@ if (historyImportFile) historyImportFile.onchange = (e) => {
         try {
             const data = JSON.parse(ev.target.result);
             if (data.topics) {
-                const tx = storage.db.transaction(['topics'], 'readwrite');
-                const store = tx.objectStore('topics');
-                data.topics.forEach(t => store.put(t));
+                for (const t of data.topics) await storage.putTopic(t);
             }
             if (data.messages) {
-                const tx = storage.db.transaction(['messages'], 'readwrite');
-                const store = tx.objectStore('messages');
-                data.messages.forEach(m => store.put(m));
+                for (const m of data.messages) await storage.putMessage(m);
             }
             location.reload();
         } catch (err) { alert("Failed to import history"); }
@@ -1000,11 +956,10 @@ if (historyImportFile) historyImportFile.onchange = (e) => {
 // ── STT（语音识别）──────────────────────────────────────────
 if (startRecognitionButton) {
     // Right-click: show debug info (storage keys)
-    startRecognitionButton.addEventListener('contextmenu', (e) => {
+    startRecognitionButton.addEventListener('contextmenu', async (e) => {
         e.preventDefault();
-        storage.db.transaction(['settings']).objectStore('settings').getAllKeys().onsuccess = ev => {
-            alert('Storage keys: ' + ev.target.result.join(', '));
-        };
+        const keys = await storage.getAllSettingsKeys();
+        alert('Storage keys: ' + keys.join(', '));
     });
 
     startRecognitionButton.addEventListener('click', function() {
