@@ -25,7 +25,10 @@ const modelInput = document.getElementById('model-input');
 const fileUpload = document.getElementById('file-upload');
 const fileListDiv = document.getElementById('file-list');
 const promptListDiv = document.getElementById('prompt-list');
-const addPromptButton = document.getElementById('add-prompt-button');
+const promptNameInput = document.getElementById('prompt-name-input');
+const savePromptButton = document.getElementById('save-prompt-button');
+const deletePromptButton = document.getElementById('delete-prompt-button');
+const selectPromptButton = document.getElementById('select-prompt-button');
 const exportHistoryBtn = document.getElementById('export-history-button');
 const importHistoryBtn = document.getElementById('import-history-button');
 const historyImportFile = document.getElementById('history-import-file');
@@ -55,6 +58,8 @@ var enterApiKey = "Please enter an API key";
 var startTalk = "Start Talk";
 var noanswer = "I have a mind block, please ask another question.";
 var stopTalk = "Stop Talk";
+var overwriteConfirm = "Prompt name already exists. Overwrite?";
+var inputRequired = "Please enter both name and content.";
 var historyList = [];
 var model = "gpt-3.5-turbo";
 var temperature = 0.7;
@@ -69,12 +74,6 @@ iSaid = (content) => {
 
 // System prompt textarea
 const systemPromptInput = document.getElementById('system-prompt-input');
-if (systemPromptInput) {
-    systemPromptInput.addEventListener('change', async () => {
-        bestAssistant = systemPromptInput.value;
-        await storage.setSetting('systemPrompt', bestAssistant);
-    });
-}
 
 // Time formatting
 function getTimestamp(date) {
@@ -545,41 +544,21 @@ async function loadPrompts() {
     });
     promptListDiv.innerHTML = '';
     prompts.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'prompt-item';
-        div.innerHTML = `<span title="${p.content}">${p.title}</span>`;
-        const btnGroup = document.createElement('div');
-
-        const use = document.createElement('button');
-        use.textContent = 'Use';
-        use.onclick = () => {
-            promptInput.value = p.content;
-            if (window.innerWidth <= 768) rightPanel.classList.remove('open');
+        const btn = document.createElement('button');
+        btn.textContent = p.title;
+        btn.style.width = "100%";
+        btn.style.marginBottom = "5px";
+        btn.style.textAlign = "left";
+        btn.onclick = async () => {
+            promptNameInput.value = p.title;
+            systemPromptInput.value = p.content;
+            bestAssistant = p.content;
+            await storage.setSetting('systemPrompt', bestAssistant);
+            promptListDiv.style.display = 'none';
         };
-
-        const del = document.createElement('button');
-        del.textContent = '×';
-        del.className = 'del-btn';
-        del.onclick = async () => {
-            await new Promise(r => storage.db.transaction(['prompts'], 'readwrite').objectStore('prompts').delete(p.id).onsuccess = () => r());
-            loadPrompts();
-        };
-
-        btnGroup.appendChild(use);
-        btnGroup.appendChild(del);
-        div.appendChild(btnGroup);
-        promptListDiv.appendChild(div);
+        promptListDiv.appendChild(btn);
     });
 }
-
-if (addPromptButton) addPromptButton.onclick = async () => {
-    const title = prompt("Prompt Title");
-    const content = prompt("Prompt Content");
-    if (title && content) {
-        await new Promise(r => storage.db.transaction(['prompts'], 'readwrite').objectStore('prompts').add({ title, content }).onsuccess = () => r());
-        loadPrompts();
-    }
-};
 
 // Initial Load
 window.addEventListener('load', async () => {
@@ -613,6 +592,94 @@ window.addEventListener('load', async () => {
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
     selectLanguage();
+
+    // ── Post-Init Event Listeners ───────────────────────────
+    // Attach listeners that use storage after it is initialized.
+
+    if (systemPromptInput) {
+        systemPromptInput.addEventListener('change', async () => {
+            bestAssistant = systemPromptInput.value;
+            await storage.setSetting('systemPrompt', bestAssistant);
+        });
+    }
+
+    if (providerSelect) {
+        providerSelect.addEventListener('change', async () => {
+            if (_previousProvider) await saveCurrentProviderSettings(_previousProvider);
+            const provider = providerSelect.value;
+            await storage.setSetting('provider', provider);
+            await loadProviderSettings(provider);
+        });
+    }
+
+    [apiKeyInput, baseUrlInput, modelInput].forEach(el => {
+        if (el) el.addEventListener('change', async () => {
+            await saveCurrentProviderSettings();
+        });
+    });
+
+    [themeSelect, temperatureRange, contextWindowRange].forEach(el => {
+        if (el) el.addEventListener('change', async () => {
+            await storage.setSetting(el.id, el.value);
+            if (el.id === 'theme-select') setColorMode(el.value);
+        });
+    });
+
+    if (selectPromptButton) {
+        selectPromptButton.onclick = () => {
+            promptListDiv.style.display = promptListDiv.style.display === 'none' ? 'block' : 'none';
+        };
+    }
+
+    if (savePromptButton) {
+        savePromptButton.onclick = async () => {
+            const title = promptNameInput.value.trim();
+            const content = systemPromptInput.value.trim();
+            if (!title || !content) {
+                alert(inputRequired);
+                return;
+            }
+
+            const prompts = await new Promise(r => {
+                storage.db.transaction(['prompts']).objectStore('prompts').getAll().onsuccess = e => r(e.target.result);
+            });
+            const existing = prompts.find(p => p.title === title);
+
+            if (existing) {
+                if (!confirm(overwriteConfirm)) return;
+                await new Promise(r => {
+                    const tx = storage.db.transaction(['prompts'], 'readwrite');
+                    tx.objectStore('prompts').put({ id: existing.id, title, content }).onsuccess = () => r();
+                });
+            } else {
+                await new Promise(r => {
+                    const tx = storage.db.transaction(['prompts'], 'readwrite');
+                    tx.objectStore('prompts').add({ title, content }).onsuccess = () => r();
+                });
+            }
+            loadPrompts();
+        };
+    }
+
+    if (deletePromptButton) {
+        deletePromptButton.onclick = async () => {
+            const title = promptNameInput.value.trim();
+            const prompts = await new Promise(r => {
+                storage.db.transaction(['prompts']).objectStore('prompts').getAll().onsuccess = e => r(e.target.result);
+            });
+            const existing = prompts.find(p => p.title === title);
+            if (existing) {
+                await new Promise(r => {
+                    storage.db.transaction(['prompts'], 'readwrite').objectStore('prompts').delete(existing.id).onsuccess = () => r();
+                });
+            }
+            promptNameInput.value = "";
+            systemPromptInput.value = "";
+            bestAssistant = "";
+            await storage.setSetting('systemPrompt', "");
+            loadPrompts();
+        };
+    }
 });
 
 // Per-provider config（与 LLMtester 保持一致）
@@ -708,28 +775,6 @@ function populateModelDatalist(modelList) {
     }
 }
 
-// 切换服务商：先把当前设置存到【旧服务商】，再加载新的
-if (providerSelect) providerSelect.addEventListener('change', async () => {
-    // change 触发时 value 已是新值，用 _previousProvider 保存旧的
-    if (_previousProvider) await saveCurrentProviderSettings(_previousProvider);
-    const provider = providerSelect.value;
-    await storage.setSetting('provider', provider);
-    await loadProviderSettings(provider);
-});
-
-// URL / Key / Model 变动时实时保存到当前服务商
-[apiKeyInput, baseUrlInput, modelInput].forEach(el => {
-    if (el) el.addEventListener('change', async () => {
-        await saveCurrentProviderSettings();
-    });
-});
-
-[themeSelect, temperatureRange, contextWindowRange].forEach(el => {
-    if (el) el.addEventListener('change', async () => {
-        await storage.setSetting(el.id, el.value);
-        if (el.id === 'theme-select') setColorMode(el.value);
-    });
-});
 
 function setColorMode(mode) {
     let theme = mode;
@@ -1077,12 +1122,18 @@ function loadLanguage(lang) {
         document.getElementById("promptLibraryLabel").innerHTML = data.label14;
         document.getElementById("treeTitle").innerHTML = data.label15;
         document.getElementById("topicsTitle").innerHTML = data.label16;
+        document.getElementById("systemPromptLabel").innerHTML = data.label17;
+        document.getElementById("promptNameLabel").innerHTML = data.label18;
         if (data.text6) corsErrorMsg = data.text6;
+        if (data.text7) overwriteConfirm = data.text7;
+        if (data.text8) inputRequired = data.text8;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;
         importHistoryBtn.textContent = data.button8;
-        addPromptButton.textContent = data.button9;
+        if (savePromptButton) savePromptButton.textContent = data.button13;
+        if (deletePromptButton) deletePromptButton.textContent = data.button14;
+        if (selectPromptButton) selectPromptButton.textContent = data.button15;
         exportSettingsBtn.textContent = data.button10;
         importSettingsBtn.textContent = data.button11;
         enterPromoteButton.textContent = data.button12;
