@@ -61,6 +61,7 @@ var stopTalk = "Stop Talk";
 var overwriteConfirm = "Prompt name already exists. Overwrite?";
 var inputRequired = "Please enter both name and content.";
 var deleteConfirm = "Delete this message?";
+var deleteTopicConfirm = "Delete this topic and all its messages?";
 var historyList = [];
 var model = "gpt-3.5-turbo";
 var temperature = 0.7;
@@ -324,6 +325,18 @@ async function deleteMessageUI(id) {
     updateTree();
 }
 
+async function deleteTopicUI(id) {
+    if (!confirm(deleteTopicConfirm)) return;
+    await storage.deleteTopic(id);
+    if (currentTopicId === id) {
+        currentTopicId = null;
+        currentMessageId = null;
+        conversationDisplay.innerHTML = '';
+        updateTree();
+    }
+    loadTopics();
+}
+
 function renderTreeNode(node, container, level = 0, parentRole = null) {
     const isRoot = level === 0;
     const isAssistantFollowingUser = node.role === 'assistant' && parentRole === 'user';
@@ -465,7 +478,20 @@ async function loadTopics() {
     topics.forEach(t => {
         const div = document.createElement('div');
         div.className = 'topic-item' + (t.id === currentTopicId ? ' active' : '');
-        div.textContent = t.title;
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = t.title;
+        div.appendChild(titleSpan);
+
+        const delBtn = document.createElement('span');
+        delBtn.className = 'topic-delete-btn';
+        delBtn.textContent = '×';
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteTopicUI(t.id);
+        };
+        div.appendChild(delBtn);
+
         div.onclick = () => switchTopic(t.id);
         topicList.appendChild(div);
     });
@@ -1162,6 +1188,7 @@ function loadLanguage(lang) {
         if (data.text7) overwriteConfirm = data.text7;
         if (data.text8) inputRequired = data.text8;
         if (data.text9) deleteConfirm = data.text9;
+        if (data.text10) deleteTopicConfirm = data.text10;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;

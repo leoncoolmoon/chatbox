@@ -41,5 +41,6 @@
     "text6":"Failed to fetch models. This may be due to CORS restrictions from the provider. Try entering the model name manually.",
     "text7":"Prompt name already exists. Overwrite?",
     "text8":"Please enter both name and content?",
-    "text9":"Are you sure you want to delete this message?"
+    "text9":"Are you sure you want to delete this message?",
+    "text10":"Are you sure you want to delete this topic and all its messages?"
  }
