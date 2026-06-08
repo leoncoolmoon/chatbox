@@ -341,6 +341,27 @@ button:hover {
   margin: 5px 0;
 }
 
+.tree-node {
+  padding: 6px 10px;
+  margin: 4px 0;
+  border-radius: 4px;
+  font-size: 12px;
+  border-left: 2px solid var(--input-border);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-node.active {
+  background-color: var(--active-item-bg);
+  border-left-color: var(--accent-color);
+}
+
+.tree-node.selected {
+  background-color: rgba(255, 235, 59, 0.1);
+  outline: 1px dashed #fdd835;
+}
 
 /* 桌面端收起状态 */
 #sidebar.collapsed {
@@ -555,7 +576,7 @@ button:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
+  /*flex: 1;*/
   min-width: 0;
 }
 
@@ -587,11 +608,6 @@ button:hover {
   border-left: 3px solid var(--accent-color);
   font-weight: 600;
   color: var(--accent-color);
-}
-
-.tree-node.selected {
-  background-color: rgba(255, 235, 59, 0.1);
-  outline: 1px dashed #fdd835;
 }
 
 /* Small dot on the rail where the horizontal branch starts */
