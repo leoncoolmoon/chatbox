@@ -2,12 +2,16 @@ const DB_NAME = 'ChatbotPWA_DB';
 const DB_VERSION = 1;
 
 class StorageService {
+  #initPromise = null;
+
   constructor() {
     this.db = null;
   }
 
   async init() {
-    return new Promise((resolve, reject) => {
+    if (this.#initPromise) return this.#initPromise;
+
+    this.#initPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onupgradeneeded = (event) => {
@@ -45,9 +49,12 @@ class StorageService {
         reject('IndexedDB error: ' + event.target.errorCode);
       };
     });
+
+    return this.#initPromise;
   }
 
   async getSetting(key) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['settings'], 'readonly');
@@ -59,6 +66,7 @@ class StorageService {
   }
 
   async setSetting(key, value) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['settings'], 'readwrite');
@@ -70,6 +78,7 @@ class StorageService {
   }
 
   async getAllMessagesByTopic(topicId) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['messages'], 'readonly');
@@ -82,6 +91,7 @@ class StorageService {
   }
 
   async addMessage(message) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['messages'], 'readwrite');
@@ -93,6 +103,7 @@ class StorageService {
   }
 
   async clearMessagesByTopic(topicId) {
+     await this.init();
      return new Promise((resolve, reject) => {
         if (!this.db) { reject('DB not initialized'); return; }
         const transaction = this.db.transaction(['messages'], 'readwrite');

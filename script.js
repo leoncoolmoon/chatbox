@@ -128,7 +128,7 @@ async function chat(message) {
   const provider = providerSelect.value;
   const def = PROVIDERS[provider] || { needsKey: 'optional' };
 
-  if (def.needsKey === true && !apiKeyInput.value) {
+  if (def.needsKey === true && !apiKeyInput.value.trim()) {
     rightPanel.classList.add('open');
     alert(enterApiKey);
     return;
@@ -197,13 +197,14 @@ async function chat(message) {
     updateTree();
   }
 
-  const baseUrl = baseUrlInput.value || "https://api.openai.com/v1";
+  const baseUrl = (baseUrlInput.value || "https://api.openai.com/v1").trim();
   const apiUrl = baseUrl.endsWith('/') ? baseUrl + "chat/completions" : baseUrl + "/chat/completions";
 
   try {
     const headers = { "Content-Type": "application/json" };
-    if (apiKeyInput.value) {
-        headers["Authorization"] = `Bearer ${apiKeyInput.value}`;
+    const apiKey = apiKeyInput.value.trim();
+    if (apiKey && def.needsKey !== false) {
+        headers["Authorization"] = `Bearer ${apiKey}`;
     }
     const response = await fetch(apiUrl, {
         method: "POST",
@@ -243,17 +244,24 @@ async function chat(message) {
   } catch (error) {
     console.error(error);
     const waitingDiv = document.getElementById(`waiting-${convIndex}`);
-    if (waitingDiv) waitingDiv.innerHTML = `<p class="botText" style="color:red;">Error: ${error.message}</p>`;
+    let msg = error.message;
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        msg = "Network error or CORS restriction. Check your Base URL and provider status.";
+    }
+    if (waitingDiv) waitingDiv.innerHTML = `<p class="botText" style="color:red;">Error: ${msg}</p>`;
   }
 }
 
 async function autoSummarize(messages) {
-    const baseUrl = baseUrlInput.value || "https://api.openai.com/v1";
+    const provider = providerSelect.value;
+    const def = PROVIDERS[provider] || { needsKey: 'optional' };
+    const baseUrl = (baseUrlInput.value || "https://api.openai.com/v1").trim();
     const apiUrl = baseUrl.endsWith('/') ? baseUrl + "chat/completions" : baseUrl + "/chat/completions";
     try {
         const headers = { "Content-Type": "application/json" };
-        if (apiKeyInput.value) {
-            headers["Authorization"] = `Bearer ${apiKeyInput.value}`;
+        const apiKey = apiKeyInput.value.trim();
+        if (apiKey && def.needsKey !== false) {
+            headers["Authorization"] = `Bearer ${apiKey}`;
         }
         const response = await fetch(apiUrl, {
             method: "POST",
@@ -453,17 +461,18 @@ if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
     const provider = providerSelect.value;
     const def = PROVIDERS[provider] || { needsKey: 'optional' };
 
-    if (def.needsKey === true && !apiKeyInput.value) {
+    if (def.needsKey === true && !apiKeyInput.value.trim()) {
         return alert(enterApiKey);
     }
-    const baseUrl = baseUrlInput.value || "https://api.openai.com/v1";
+    const baseUrl = (baseUrlInput.value || "https://api.openai.com/v1").trim();
     const apiUrl = baseUrl.endsWith('/') ? baseUrl + "models" : baseUrl + "/models";
 
     try {
         fetchModelsBtn.textContent = "⏳";
         const headers = {};
-        if (apiKeyInput.value) {
-            headers["Authorization"] = `Bearer ${apiKeyInput.value}`;
+        const apiKey = apiKeyInput.value.trim();
+        if (apiKey && def.needsKey !== false) {
+            headers["Authorization"] = `Bearer ${apiKey}`;
         }
         const response = await fetch(apiUrl, { headers });
 
@@ -498,7 +507,7 @@ if (fetchModelsBtn) fetchModelsBtn.onclick = async () => {
         }
     } catch (e) {
         if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
-            alert(corsErrorMsg + " (Error: " + e.message + ")");
+            alert(corsErrorMsg + " (Network error or CORS restriction. Error: " + e.message + ")");
         } else {
             alert("Failed to fetch models: " + e.message);
         }
