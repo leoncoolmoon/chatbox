@@ -375,7 +375,12 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     const label = document.createElement('span');
     label.className = 'tree-label';
     label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content;
-    label.title = node.content;
+    // Escape HTML entities for the title attribute to prevent breakage, but keep newlines
+    label.title = node.content.replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     div.appendChild(label);
 
     // Delete button
