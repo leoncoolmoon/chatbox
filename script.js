@@ -60,6 +60,7 @@ var noanswer = "I have a mind block, please ask another question.";
 var stopTalk = "Stop Talk";
 var overwriteConfirm = "Prompt name already exists. Overwrite?";
 var inputRequired = "Please enter both name and content.";
+var deleteConfirm = "Delete this message?";
 var historyList = [];
 var model = "gpt-3.5-turbo";
 var temperature = 0.7;
@@ -305,6 +306,24 @@ async function updateTree() {
     roots.forEach(root => renderTreeNode(root, treeContainer));
 }
 
+async function deleteMessageUI(id) {
+    if (!confirm(deleteConfirm)) return;
+    const messages = await storage.getAllMessagesByTopic(currentTopicId);
+    const msg = messages.find(m => m.id === id);
+    if (!msg) return;
+
+    await storage.deleteMessage(id);
+
+    if (currentMessageId === id) {
+        currentMessageId = msg.parentId || null;
+    }
+
+    const updatedMessages = await storage.getAllMessagesByTopic(currentTopicId);
+    const branch = getLinearBranch(updatedMessages, currentMessageId);
+    renderMessages(branch);
+    updateTree();
+}
+
 function renderTreeNode(node, container, level = 0) {
     const isRoot = level === 0;
 
@@ -338,6 +357,16 @@ function renderTreeNode(node, container, level = 0) {
     const label = document.createElement('span');
     label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content.substring(0, 28);
     div.appendChild(label);
+
+    // Delete button
+    const deleteBtn = document.createElement('span');
+    deleteBtn.className = 'tree-delete-btn';
+    deleteBtn.textContent = '×';
+    deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteMessageUI(node.id);
+    };
+    div.appendChild(deleteBtn);
 
     div.onclick = async (e) => {
         if (e.ctrlKey || e.metaKey) {
@@ -1127,6 +1156,7 @@ function loadLanguage(lang) {
         if (data.text6) corsErrorMsg = data.text6;
         if (data.text7) overwriteConfirm = data.text7;
         if (data.text8) inputRequired = data.text8;
+        if (data.text9) deleteConfirm = data.text9;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;
