@@ -109,6 +109,7 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  min-width: 0;
 }
 
 .topic-item:hover {
@@ -122,6 +123,7 @@ body {
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s, color 0.2s;
+  flex-shrink: 0;
 }
 
 .topic-item:hover .topic-delete-btn {
@@ -571,10 +573,15 @@ button:hover {
 }
 
 .tree-node > span:first-of-type {
+  /* No longer handles truncation directly as there might be a toggle button before it */
+}
+
+.tree-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /*flex: 1;*/
+  flex: 1;
+  min-width: 0;
 }
 
 .tree-node:hover {
@@ -589,6 +596,7 @@ button:hover {
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s, color 0.2s;
+  flex-shrink: 0;
 }
 
 .tree-node:hover .tree-delete-btn {

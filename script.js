@@ -373,7 +373,11 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
 
     // Role icon + label
     const label = document.createElement('span');
-    label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content.substring(0, 28);
+    label.className = 'tree-label';
+    label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content;
+    // Native tooltips can be unstable if content is too long or contains complex formatting.
+    // Use raw content truncated to a safe length for stability.
+    label.title = node.content.slice(0, 1000);
     div.appendChild(label);
 
     // Delete button
