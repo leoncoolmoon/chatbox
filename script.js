@@ -377,7 +377,8 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content;
     // Native tooltips can be unstable if content is too long or contains complex formatting.
     // Use raw content truncated to a safe length for stability.
-    label.title = filterXSS(node.content.slice(0, 1000));
+    //label.title = filterXSS(node.content.slice(0, 1000).replace("<br>",""));
+    label.title = node?.content ? node.content.replace(/<\/?[^>]+(>|$)/g, "").replace(/&nbsp;/g, " ").slice(0, 1000) : "";
     div.appendChild(label);
 
     // Delete button
