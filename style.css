@@ -573,10 +573,14 @@ button:hover {
 }
 
 .tree-node > span:first-of-type {
+  /* No longer handles truncation directly as there might be a toggle button before it */
+}
+
+.tree-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /*flex: 1;*/
+  flex: 1;
   min-width: 0;
 }
 

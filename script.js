@@ -373,6 +373,7 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
 
     // Role icon + label
     const label = document.createElement('span');
+    label.className = 'tree-label';
     label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content.substring(0, 28);
     div.appendChild(label);
 
