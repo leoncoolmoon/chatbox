@@ -60,6 +60,8 @@ var noanswer = "I have a mind block, please ask another question.";
 var stopTalk = "Stop Talk";
 var overwriteConfirm = "Prompt name already exists. Overwrite?";
 var inputRequired = "Please enter both name and content.";
+var deleteConfirm = "Delete this message?";
+var deleteTopicConfirm = "Delete this topic and all its messages?";
 var historyList = [];
 var model = "gpt-3.5-turbo";
 var temperature = 0.7;
@@ -302,15 +304,50 @@ async function updateTree() {
     });
 
     treeContainer.innerHTML = '';
-    roots.forEach(root => renderTreeNode(root, treeContainer));
+    roots.forEach(root => renderTreeNode(root, treeContainer, 0, null));
 }
 
-function renderTreeNode(node, container, level = 0) {
+async function deleteMessageUI(id) {
+    if (!confirm(deleteConfirm)) return;
+    const messages = await storage.getAllMessagesByTopic(currentTopicId);
+    const msg = messages.find(m => m.id === id);
+    if (!msg) return;
+
+    await storage.deleteMessage(id);
+
+    if (currentMessageId === id) {
+        currentMessageId = msg.parentId || null;
+    }
+
+    const updatedMessages = await storage.getAllMessagesByTopic(currentTopicId);
+    const branch = getLinearBranch(updatedMessages, currentMessageId);
+    renderMessages(branch);
+    updateTree();
+}
+
+async function deleteTopicUI(id) {
+    if (!confirm(deleteTopicConfirm)) return;
+    await storage.deleteTopic(id);
+    if (currentTopicId === id) {
+        currentTopicId = null;
+        currentMessageId = null;
+        conversationDisplay.innerHTML = '';
+        updateTree();
+    }
+    loadTopics();
+}
+
+function renderTreeNode(node, container, level = 0, parentRole = null) {
     const isRoot = level === 0;
+    const isAssistantFollowingUser = node.role === 'assistant' && parentRole === 'user';
 
     // Wrapper: provides the vertical rail + horizontal connector via CSS
     const wrapper = document.createElement('div');
-    wrapper.className = isRoot ? 'tree-root-wrapper' : 'tree-node-wrapper';
+    if (isRoot) {
+        wrapper.className = 'tree-root-wrapper';
+    } else {
+        wrapper.className = 'tree-node-wrapper' + (isAssistantFollowingUser ? ' no-indent' : '');
+    }
 
     // Node pill
     const div = document.createElement('div');
@@ -339,6 +376,16 @@ function renderTreeNode(node, container, level = 0) {
     label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content.substring(0, 28);
     div.appendChild(label);
 
+    // Delete button
+    const deleteBtn = document.createElement('span');
+    deleteBtn.className = 'tree-delete-btn';
+    deleteBtn.textContent = '×';
+    deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        deleteMessageUI(node.id);
+    };
+    div.appendChild(deleteBtn);
+
     div.onclick = async (e) => {
         if (e.ctrlKey || e.metaKey) {
             if (selectedContextIds.has(node.id)) selectedContextIds.delete(node.id);
@@ -360,7 +407,7 @@ function renderTreeNode(node, container, level = 0) {
     if (hasChildren) {
         const childContainer = document.createElement('div');
         childContainer.className = 'tree-children';
-        node.children.forEach(child => renderTreeNode(child, childContainer, level + 1));
+        node.children.forEach(child => renderTreeNode(child, childContainer, level + 1, node.role));
         wrapper.appendChild(childContainer);
     }
 
@@ -431,7 +478,20 @@ async function loadTopics() {
     topics.forEach(t => {
         const div = document.createElement('div');
         div.className = 'topic-item' + (t.id === currentTopicId ? ' active' : '');
-        div.textContent = t.title;
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = t.title;
+        div.appendChild(titleSpan);
+
+        const delBtn = document.createElement('span');
+        delBtn.className = 'topic-delete-btn';
+        delBtn.textContent = '×';
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteTopicUI(t.id);
+        };
+        div.appendChild(delBtn);
+
         div.onclick = () => switchTopic(t.id);
         topicList.appendChild(div);
     });
@@ -1127,6 +1187,8 @@ function loadLanguage(lang) {
         if (data.text6) corsErrorMsg = data.text6;
         if (data.text7) overwriteConfirm = data.text7;
         if (data.text8) inputRequired = data.text8;
+        if (data.text9) deleteConfirm = data.text9;
+        if (data.text10) deleteTopicConfirm = data.text10;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;

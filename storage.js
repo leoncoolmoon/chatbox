@@ -92,6 +92,17 @@ class StorageService {
     });
   }
 
+  async deleteMessage(id) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['messages'], 'readwrite');
+      const store = transaction.objectStore('messages');
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async clearMessagesByTopic(topicId) {
      return new Promise((resolve, reject) => {
         if (!this.db) { reject('DB not initialized'); return; }
@@ -116,6 +127,18 @@ class StorageService {
             request.onerror = () => reject(request.error);
         }
      });
+  }
+
+  async deleteTopic(id) {
+    await this.clearMessagesByTopic(id);
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['topics'], 'readwrite');
+      const store = transaction.objectStore('topics');
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
   }
 }
 
