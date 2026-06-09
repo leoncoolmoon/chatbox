@@ -72,6 +72,30 @@ body {
   border-bottom: 1px solid var(--input-border);
 }
 
+.tree-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tree-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.tree-controls button {
+  padding: 4px 8px;
+  font-size: 16px;
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  line-height: 1;
+}
+
+.tree-controls button:hover {
+  background: var(--active-item-bg);
+}
+
 .sidebar-controls {
   display: flex;
   gap: 10px;
@@ -607,7 +631,7 @@ button:hover {
   position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   padding: 6px 10px;
   margin: 3px 0;
   border-radius: 6px;
@@ -616,6 +640,12 @@ button:hover {
   background-color: var(--bg-color);
   cursor: pointer;
   transition: background-color 0.15s, border-color 0.15s;
+}
+
+.tree-checkbox {
+  margin-right: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .tree-node > span:first-of-type {
