@@ -50,6 +50,7 @@ const rightPanel = document.getElementById('right-panel');
 var currentTopicId = null;
 var currentMessageId = null;
 var activeChatAbortController = null;
+var isGenerating = false;
 var selectedContextIds = new Set();
 var voice = false;
 var you = "You";
@@ -130,6 +131,10 @@ if (closeTreeBtn) closeTreeBtn.onclick = () => {
 
 // Core Chat
 async function chat(message) {
+  if (isGenerating) return;
+  isGenerating = true;
+  conversationDisplay.classList.add('generating');
+
   const provider = providerSelect.value;
   const def = PROVIDERS[provider] || { needsKey: 'optional' };
 
@@ -292,6 +297,8 @@ async function chat(message) {
     if (waitingDiv) waitingDiv.innerHTML = `<p class="botText" style="color:red;">Error: ${msg}</p>`;
   } finally {
     activeChatAbortController = null;
+    isGenerating = false;
+    conversationDisplay.classList.remove('generating');
   }
 }
 
