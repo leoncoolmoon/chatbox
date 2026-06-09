@@ -94,6 +94,9 @@ body {
 }
 
 .topic-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 12px 15px;
   cursor: pointer;
   border-bottom: 1px solid var(--input-border);
@@ -101,8 +104,34 @@ body {
   transition: background-color 0.2s;
 }
 
+.topic-item > span:first-of-type {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
 .topic-item:hover {
   background-color: var(--active-item-bg);
+}
+
+.topic-delete-btn {
+  margin-left: 8px;
+  font-size: 18px;
+  color: #888;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.topic-item:hover .topic-delete-btn {
+  opacity: 1;
+}
+
+.topic-delete-btn:hover {
+  color: #f44336;
 }
 
 .topic-item.active {
@@ -480,6 +509,15 @@ button:hover {
   padding-left: 20px;
 }
 
+.tree-node-wrapper.no-indent {
+  padding-left: 0;
+}
+
+.tree-node-wrapper.no-indent::before,
+.tree-node-wrapper.no-indent::after {
+  display: none;
+}
+
 /* The vertical line running down through children */
 .tree-node-wrapper::before {
   content: "";
@@ -521,6 +559,9 @@ button:hover {
 /* Node pill */
 .tree-node {
   position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   padding: 6px 10px;
   margin: 3px 0;
   border-radius: 6px;
@@ -528,15 +569,42 @@ button:hover {
   border: 1px solid var(--input-border);
   background-color: var(--bg-color);
   cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.tree-node > span:first-of-type {
+  /* No longer handles truncation directly as there might be a toggle button before it */
+}
+
+.tree-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background-color 0.15s, border-color 0.15s;
+  flex: 1;
+  min-width: 0;
 }
 
 .tree-node:hover {
   background-color: var(--active-item-bg);
   border-color: var(--accent-color);
+}
+
+.tree-delete-btn {
+  margin-left: auto;
+  font-size: 14px;
+  color: #888;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.tree-node:hover .tree-delete-btn {
+  opacity: 1;
+}
+
+.tree-delete-btn:hover {
+  color: #f44336;
 }
 
 .tree-node.active {
