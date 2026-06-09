@@ -40,6 +40,7 @@ const fetchModelsBtn = document.getElementById('fetch-models-button');
 // model-input is now a <select>, no separate datalist needed
 const menuToggle = document.getElementById('menu-toggle');
 const mobileSettingsBtn = document.getElementById('mobile-settings-button');
+const showMetadataToggle = document.getElementById('show-metadata-toggle');
 const closeSettingsBtn = document.getElementById('close-settings');
 const closeTreeBtn = document.getElementById('close-tree');
 const closeSidebarBtn = document.getElementById('close-sidebar');
@@ -245,9 +246,17 @@ async function chat(message) {
     const data = await response.json();
     if (data.choices && data.choices[0]) {
         const answer = data.choices[0].message.content;
+        const metaModel = data.model || "";
+        const metaUsage = data.usage ? `${data.usage.total_tokens} tokens` : "";
+        const metaText = [metaModel, metaUsage].filter(Boolean).join(" | ");
+
         const waitingDiv = document.getElementById(`waiting-${convIndex}`);
         if (waitingDiv) {
-            waitingDiv.innerHTML = `<p class="botText">${filterXSS(answer)}</p>`;
+            let html = `<p class="botText">${filterXSS(answer)}</p>`;
+            if (showMetadataToggle.checked && metaText) {
+                html += `<div class="bot-metadata">${metaText}</div>`;
+            }
+            waitingDiv.innerHTML = html;
             conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
         }
 
@@ -258,7 +267,8 @@ async function chat(message) {
                 parentId: userMessageId,
                 role: "assistant",
                 content: answer,
-                timestamp: new Date()
+                timestamp: new Date(),
+                metadata: metaText
             });
             updateTree();
         }
@@ -464,8 +474,16 @@ function renderMessages(messages) {
         if (msg.role === 'system') return;
         const div = document.createElement('div');
         div.className = msg.role === 'user' ? 'userdiv' : 'botdiv';
-        div.innerHTML = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
+
+        let html = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
             + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}${msg.role === 'user' ? ' <span class="regen-chat" title="Regenerate">🔄</span>' : ''}</p>`;
+
+        if (msg.role === 'assistant' && msg.metadata && showMetadataToggle.checked) {
+            html += `<div class="bot-metadata">${msg.metadata}</div>`;
+        }
+
+        div.innerHTML = html;
+
         if (msg.role === 'user') {
             div.ondblclick = () => editQ(msg.id);
             const regenBtn = div.querySelector('.regen-chat');
@@ -693,6 +711,11 @@ window.addEventListener('load', async () => {
     loadPrompts();
     setColorMode(await storage.getSetting('theme-select') || 'system');
 
+    const savedShowMetadata = await storage.getSetting('show-metadata-toggle');
+    if (savedShowMetadata !== undefined) {
+        showMetadataToggle.checked = savedShowMetadata;
+    }
+
     // Register Service Worker
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
@@ -722,6 +745,16 @@ window.addEventListener('load', async () => {
             await saveCurrentProviderSettings();
         });
     });
+
+    if (showMetadataToggle) {
+        showMetadataToggle.addEventListener('change', async () => {
+            await storage.setSetting('show-metadata-toggle', showMetadataToggle.checked);
+            // Refresh current messages to show/hide metadata
+            const allMessages = await storage.getAllMessagesByTopic(currentTopicId);
+            const branch = getLinearBranch(allMessages, currentMessageId);
+            renderMessages(branch);
+        });
+    }
 
     [themeSelect, temperatureRange, contextWindowRange].forEach(el => {
         if (el) el.addEventListener('change', async () => {
@@ -1192,6 +1225,7 @@ function loadLanguage(lang) {
         document.getElementById("topicsTitle").innerHTML = data.label16;
         document.getElementById("systemPromptLabel").innerHTML = data.label17;
         document.getElementById("promptNameLabel").innerHTML = data.label18;
+        if (document.getElementById("showMetadataLabel")) document.getElementById("showMetadataLabel").innerHTML = data.label19;
         if (data.text6) corsErrorMsg = data.text6;
         if (data.text7) overwriteConfirm = data.text7;
         if (data.text8) inputRequired = data.text8;
