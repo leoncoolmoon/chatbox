@@ -48,6 +48,7 @@ const rightPanel = document.getElementById('right-panel');
 
 var currentTopicId = null;
 var currentMessageId = null;
+var activeChatAbortController = null;
 var selectedContextIds = new Set();
 var voice = false;
 var you = "You";
@@ -62,6 +63,7 @@ var overwriteConfirm = "Prompt name already exists. Overwrite?";
 var inputRequired = "Please enter both name and content.";
 var deleteConfirm = "Delete this message?";
 var deleteTopicConfirm = "Delete this topic and all its messages?";
+var stoppedText = "Stopped";
 var historyList = [];
 var model = "gpt-3.5-turbo";
 var temperature = 0.7;
@@ -170,21 +172,6 @@ async function chat(message) {
 
   const transcript = message[message.length - 1].content;
 
-  // Update local display immediately
-  const convIndex = Date.now();
-  const userDiv = document.createElement('div');
-  userDiv.className = 'userdiv';
-  userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())} — Double-click to branch</p><p class="userText">${filterXSS(transcript)}</p>`;
-  conversationDisplay.appendChild(userDiv);
-
-  const botDiv = document.createElement('div');
-  botDiv.className = 'botdiv';
-  botDiv.id = `waiting-${convIndex}`;
-  botDiv.innerHTML = `<p class="botText">${waiting}</p>`;
-  conversationDisplay.appendChild(botDiv);
-
-  conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
-
   // Save User Message
   let userMessageId;
   if (currentTopicId) {
@@ -199,8 +186,44 @@ async function chat(message) {
     updateTree();
   }
 
+  // Update local display immediately
+  const convIndex = Date.now();
+  const userDiv = document.createElement('div');
+  userDiv.className = 'userdiv';
+  userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())} — Double-click to branch</p>`
+      + `<p class="userText">${filterXSS(transcript)} <span class="regen-chat" title="Regenerate">🔄</span></p>`;
+  conversationDisplay.appendChild(userDiv);
+
+  const regenBtn = userDiv.querySelector('.regen-chat');
+  if (regenBtn) {
+    regenBtn.onclick = async (e) => {
+        e.stopPropagation();
+        if (userMessageId) {
+            const messages = await storage.getAllMessagesByTopic(currentTopicId);
+            const msg = messages.find(m => m.id === userMessageId);
+            if (msg) {
+                currentMessageId = msg.parentId || null;
+                iSaid(msg.content);
+            }
+        } else {
+            iSaid(transcript);
+        }
+    };
+  }
+
+  const botDiv = document.createElement('div');
+  botDiv.className = 'botdiv';
+  botDiv.id = `waiting-${convIndex}`;
+  botDiv.innerHTML = `<p class="botText">${waiting} <span class="stop-chat" onclick="if(activeChatAbortController) activeChatAbortController.abort()">×</span></p>`;
+  conversationDisplay.appendChild(botDiv);
+
+  conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
+
   const baseUrl = (baseUrlInput.value || "https://api.openai.com/v1").trim();
   const apiUrl = baseUrl.endsWith('/') ? baseUrl + "chat/completions" : baseUrl + "/chat/completions";
+
+  if (activeChatAbortController) activeChatAbortController.abort();
+  activeChatAbortController = new AbortController();
 
   try {
     const headers = { "Content-Type": "application/json" };
@@ -215,7 +238,8 @@ async function chat(message) {
             model: modelInput.value || model,
             messages: [...messagesToSend, { role: "user", content: transcript }],
             temperature: parseFloat(temperatureRange.value)
-        })
+        }),
+        signal: activeChatAbortController.signal
     });
 
     const data = await response.json();
@@ -244,6 +268,11 @@ async function chat(message) {
         throw new Error(data.error?.message || "Unknown error");
     }
   } catch (error) {
+    if (error.name === 'AbortError') {
+        const waitingDiv = document.getElementById(`waiting-${convIndex}`);
+        if (waitingDiv) waitingDiv.innerHTML = `<p class="botText" style="color:orange;">${stoppedText}</p>`;
+        return;
+    }
     console.error(error);
     const waitingDiv = document.getElementById(`waiting-${convIndex}`);
     let msg = error.message;
@@ -251,6 +280,8 @@ async function chat(message) {
         msg = "Network error or CORS restriction. Check your Base URL and provider status.";
     }
     if (waitingDiv) waitingDiv.innerHTML = `<p class="botText" style="color:red;">Error: ${msg}</p>`;
+  } finally {
+    activeChatAbortController = null;
   }
 }
 
@@ -434,9 +465,17 @@ function renderMessages(messages) {
         const div = document.createElement('div');
         div.className = msg.role === 'user' ? 'userdiv' : 'botdiv';
         div.innerHTML = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
-            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}</p>`;
+            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}${msg.role === 'user' ? ' <span class="regen-chat" title="Regenerate">🔄</span>' : ''}</p>`;
         if (msg.role === 'user') {
             div.ondblclick = () => editQ(msg.id);
+            const regenBtn = div.querySelector('.regen-chat');
+            if (regenBtn) {
+                regenBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    currentMessageId = msg.parentId || null;
+                    iSaid(msg.content);
+                };
+            }
         }
         conversationDisplay.appendChild(div);
     });
@@ -1158,6 +1197,7 @@ function loadLanguage(lang) {
         if (data.text8) inputRequired = data.text8;
         if (data.text9) deleteConfirm = data.text9;
         if (data.text10) deleteTopicConfirm = data.text10;
+        if (data.text11) stoppedText = data.text11;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;
