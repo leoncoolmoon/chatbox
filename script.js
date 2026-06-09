@@ -444,9 +444,12 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
 
     // Delete button or Checkbox
     if (isBatchCopyMode) {
+        const label = document.createElement('label');
+        label.className = 'checkbox-container';
+        label.style.marginLeft = 'auto';
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.className = 'tree-checkbox';
         checkbox.checked = batchSelectedIds.has(node.id);
         checkbox.onclick = (e) => {
             e.stopPropagation();
@@ -456,7 +459,13 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
             else batchSelectedIds.delete(node.id);
             updateBatchCopyButton();
         };
-        div.appendChild(checkbox);
+
+        const slider = document.createElement('span');
+        slider.className = 'switch-slider';
+
+        label.appendChild(checkbox);
+        label.appendChild(slider);
+        div.appendChild(label);
     } else {
         const deleteBtn = document.createElement('span');
         deleteBtn.className = 'tree-delete-btn';
