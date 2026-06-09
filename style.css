@@ -242,6 +242,48 @@ body {
   margin-bottom: 4px;
 }
 
+.bot-metadata {
+  font-size: 10px;
+  color: #999;
+  margin-top: 4px;
+  text-align: left;
+}
+
+.stop-chat {
+  margin-left: 8px;
+  cursor: pointer;
+  color: #f44336;
+  font-weight: bold;
+  font-size: 18px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.stop-chat:hover {
+  opacity: 0.7;
+}
+
+.regen-chat {
+  margin-left: 8px;
+  cursor: pointer;
+  opacity: 0;
+  font-size: 14px;
+  vertical-align: middle;
+  transition: opacity 0.2s;
+}
+
+.userdiv:hover .regen-chat {
+  opacity: 1;
+}
+
+.generating .regen-chat {
+  display: none !important;
+}
+
+.regen-chat:hover {
+  color: var(--accent-color);
+}
+
 /* Right Panel Styling */
 #right-panel {
   width: 320px;
@@ -339,6 +381,10 @@ button:hover {
 
 .range-group input {
   margin: 5px 0;
+}
+
+.checkbox-group {
+  margin: 10px 0;
 }
 
 .tree-node {

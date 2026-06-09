@@ -33,6 +33,7 @@
     "label16": "Topics",
     "label17": "System Prompt",
     "label18": "Prompt Name",
+    "label19": "Show Metadata (Model, Tokens)",
     "text1":"You",
     "text2":"ChatGPT",
     "text3":"waiting...",
@@ -42,5 +43,6 @@
     "text7":"Prompt name already exists. Overwrite?",
     "text8":"Please enter both name and content?",
     "text9":"Are you sure you want to delete this message?",
-    "text10":"Are you sure you want to delete this topic and all its messages?"
+    "text10":"Are you sure you want to delete this topic and all its messages?",
+    "text11":"Stopped"
  }

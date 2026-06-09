@@ -40,6 +40,7 @@ const fetchModelsBtn = document.getElementById('fetch-models-button');
 // model-input is now a <select>, no separate datalist needed
 const menuToggle = document.getElementById('menu-toggle');
 const mobileSettingsBtn = document.getElementById('mobile-settings-button');
+const showMetadataToggle = document.getElementById('show-metadata-toggle');
 const closeSettingsBtn = document.getElementById('close-settings');
 const closeTreeBtn = document.getElementById('close-tree');
 const closeSidebarBtn = document.getElementById('close-sidebar');
@@ -48,6 +49,8 @@ const rightPanel = document.getElementById('right-panel');
 
 var currentTopicId = null;
 var currentMessageId = null;
+var activeChatAbortController = null;
+var isGenerating = false;
 var selectedContextIds = new Set();
 var voice = false;
 var you = "You";
@@ -62,6 +65,7 @@ var overwriteConfirm = "Prompt name already exists. Overwrite?";
 var inputRequired = "Please enter both name and content.";
 var deleteConfirm = "Delete this message?";
 var deleteTopicConfirm = "Delete this topic and all its messages?";
+var stoppedText = "Stopped";
 var historyList = [];
 var model = "gpt-3.5-turbo";
 var temperature = 0.7;
@@ -127,6 +131,10 @@ if (closeTreeBtn) closeTreeBtn.onclick = () => {
 
 // Core Chat
 async function chat(message) {
+  if (isGenerating) return;
+  isGenerating = true;
+  conversationDisplay.classList.add('generating');
+
   const provider = providerSelect.value;
   const def = PROVIDERS[provider] || { needsKey: 'optional' };
 
@@ -170,21 +178,6 @@ async function chat(message) {
 
   const transcript = message[message.length - 1].content;
 
-  // Update local display immediately
-  const convIndex = Date.now();
-  const userDiv = document.createElement('div');
-  userDiv.className = 'userdiv';
-  userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())} — Double-click to branch</p><p class="userText">${filterXSS(transcript)}</p>`;
-  conversationDisplay.appendChild(userDiv);
-
-  const botDiv = document.createElement('div');
-  botDiv.className = 'botdiv';
-  botDiv.id = `waiting-${convIndex}`;
-  botDiv.innerHTML = `<p class="botText">${waiting}</p>`;
-  conversationDisplay.appendChild(botDiv);
-
-  conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
-
   // Save User Message
   let userMessageId;
   if (currentTopicId) {
@@ -199,8 +192,44 @@ async function chat(message) {
     updateTree();
   }
 
+  // Update local display immediately
+  const convIndex = Date.now();
+  const userDiv = document.createElement('div');
+  userDiv.className = 'userdiv';
+  userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())} — Double-click to branch</p>`
+      + `<p class="userText">${filterXSS(transcript)} <span class="regen-chat" title="Regenerate">🔄</span></p>`;
+  conversationDisplay.appendChild(userDiv);
+
+  const regenBtn = userDiv.querySelector('.regen-chat');
+  if (regenBtn) {
+    regenBtn.onclick = async (e) => {
+        e.stopPropagation();
+        if (userMessageId) {
+            const messages = await storage.getAllMessagesByTopic(currentTopicId);
+            const msg = messages.find(m => m.id === userMessageId);
+            if (msg) {
+                currentMessageId = msg.parentId || null;
+                iSaid(msg.content);
+            }
+        } else {
+            iSaid(transcript);
+        }
+    };
+  }
+
+  const botDiv = document.createElement('div');
+  botDiv.className = 'botdiv';
+  botDiv.id = `waiting-${convIndex}`;
+  botDiv.innerHTML = `<p class="botText">${waiting} <span class="stop-chat" onclick="if(activeChatAbortController) activeChatAbortController.abort()">×</span></p>`;
+  conversationDisplay.appendChild(botDiv);
+
+  conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
+
   const baseUrl = (baseUrlInput.value || "https://api.openai.com/v1").trim();
   const apiUrl = baseUrl.endsWith('/') ? baseUrl + "chat/completions" : baseUrl + "/chat/completions";
+
+  if (activeChatAbortController) activeChatAbortController.abort();
+  activeChatAbortController = new AbortController();
 
   try {
     const headers = { "Content-Type": "application/json" };
@@ -215,15 +244,24 @@ async function chat(message) {
             model: modelInput.value || model,
             messages: [...messagesToSend, { role: "user", content: transcript }],
             temperature: parseFloat(temperatureRange.value)
-        })
+        }),
+        signal: activeChatAbortController.signal
     });
 
     const data = await response.json();
     if (data.choices && data.choices[0]) {
         const answer = data.choices[0].message.content;
+        const metaModel = data.model || "";
+        const metaUsage = data.usage ? `${data.usage.total_tokens} tokens` : "";
+        const metaText = [metaModel, metaUsage].filter(Boolean).join(" | ");
+
         const waitingDiv = document.getElementById(`waiting-${convIndex}`);
         if (waitingDiv) {
-            waitingDiv.innerHTML = `<p class="botText">${filterXSS(answer)}</p>`;
+            let html = `<p class="botText">${filterXSS(answer)}</p>`;
+            if (showMetadataToggle.checked && metaText) {
+                html += `<div class="bot-metadata">${metaText}</div>`;
+            }
+            waitingDiv.innerHTML = html;
             conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
         }
 
@@ -234,7 +272,8 @@ async function chat(message) {
                 parentId: userMessageId,
                 role: "assistant",
                 content: answer,
-                timestamp: new Date()
+                timestamp: new Date(),
+                metadata: metaText
             });
             updateTree();
         }
@@ -244,6 +283,11 @@ async function chat(message) {
         throw new Error(data.error?.message || "Unknown error");
     }
   } catch (error) {
+    if (error.name === 'AbortError') {
+        const waitingDiv = document.getElementById(`waiting-${convIndex}`);
+        if (waitingDiv) waitingDiv.innerHTML = `<p class="botText" style="color:orange;">${stoppedText}</p>`;
+        return;
+    }
     console.error(error);
     const waitingDiv = document.getElementById(`waiting-${convIndex}`);
     let msg = error.message;
@@ -251,6 +295,10 @@ async function chat(message) {
         msg = "Network error or CORS restriction. Check your Base URL and provider status.";
     }
     if (waitingDiv) waitingDiv.innerHTML = `<p class="botText" style="color:red;">Error: ${msg}</p>`;
+  } finally {
+    activeChatAbortController = null;
+    isGenerating = false;
+    conversationDisplay.classList.remove('generating');
   }
 }
 
@@ -433,10 +481,26 @@ function renderMessages(messages) {
         if (msg.role === 'system') return;
         const div = document.createElement('div');
         div.className = msg.role === 'user' ? 'userdiv' : 'botdiv';
-        div.innerHTML = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
-            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}</p>`;
+
+        let html = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
+            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}${msg.role === 'user' ? ' <span class="regen-chat" title="Regenerate">🔄</span>' : ''}</p>`;
+
+        if (msg.role === 'assistant' && msg.metadata && showMetadataToggle.checked) {
+            html += `<div class="bot-metadata">${msg.metadata}</div>`;
+        }
+
+        div.innerHTML = html;
+
         if (msg.role === 'user') {
             div.ondblclick = () => editQ(msg.id);
+            const regenBtn = div.querySelector('.regen-chat');
+            if (regenBtn) {
+                regenBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    currentMessageId = msg.parentId || null;
+                    iSaid(msg.content);
+                };
+            }
         }
         conversationDisplay.appendChild(div);
     });
@@ -654,6 +718,11 @@ window.addEventListener('load', async () => {
     loadPrompts();
     setColorMode(await storage.getSetting('theme-select') || 'system');
 
+    const savedShowMetadata = await storage.getSetting('show-metadata-toggle');
+    if (savedShowMetadata !== undefined) {
+        showMetadataToggle.checked = savedShowMetadata;
+    }
+
     // Register Service Worker
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
@@ -683,6 +752,16 @@ window.addEventListener('load', async () => {
             await saveCurrentProviderSettings();
         });
     });
+
+    if (showMetadataToggle) {
+        showMetadataToggle.addEventListener('change', async () => {
+            await storage.setSetting('show-metadata-toggle', showMetadataToggle.checked);
+            // Refresh current messages to show/hide metadata
+            const allMessages = await storage.getAllMessagesByTopic(currentTopicId);
+            const branch = getLinearBranch(allMessages, currentMessageId);
+            renderMessages(branch);
+        });
+    }
 
     [themeSelect, temperatureRange, contextWindowRange].forEach(el => {
         if (el) el.addEventListener('change', async () => {
@@ -1153,11 +1232,13 @@ function loadLanguage(lang) {
         document.getElementById("topicsTitle").innerHTML = data.label16;
         document.getElementById("systemPromptLabel").innerHTML = data.label17;
         document.getElementById("promptNameLabel").innerHTML = data.label18;
+        if (document.getElementById("showMetadataLabel")) document.getElementById("showMetadataLabel").innerHTML = data.label19;
         if (data.text6) corsErrorMsg = data.text6;
         if (data.text7) overwriteConfirm = data.text7;
         if (data.text8) inputRequired = data.text8;
         if (data.text9) deleteConfirm = data.text9;
         if (data.text10) deleteTopicConfirm = data.text10;
+        if (data.text11) stoppedText = data.text11;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;
