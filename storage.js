@@ -2,12 +2,16 @@ const DB_NAME = 'ChatbotPWA_DB';
 const DB_VERSION = 1;
 
 class StorageService {
+  #initPromise = null;
+
   constructor() {
     this.db = null;
   }
 
   async init() {
-    return new Promise((resolve, reject) => {
+    if (this.#initPromise) return this.#initPromise;
+
+    this.#initPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onupgradeneeded = (event) => {
@@ -45,9 +49,12 @@ class StorageService {
         reject('IndexedDB error: ' + event.target.errorCode);
       };
     });
+
+    return this.#initPromise;
   }
 
   async getSetting(key) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['settings'], 'readonly');
@@ -59,6 +66,7 @@ class StorageService {
   }
 
   async setSetting(key, value) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['settings'], 'readwrite');
@@ -69,7 +77,68 @@ class StorageService {
     });
   }
 
+  async getAllSettingsKeys() {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['settings'], 'readonly');
+      const store = transaction.objectStore('settings');
+      const request = store.getAllKeys();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getAllTopics() {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['topics'], 'readonly');
+      const store = transaction.objectStore('topics');
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async addTopic(topic) {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['topics'], 'readwrite');
+      const store = transaction.objectStore('topics');
+      const request = store.add(topic);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async putTopic(topic) {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['topics'], 'readwrite');
+      const store = transaction.objectStore('topics');
+      const request = store.put(topic);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async clearAllTopics() {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['topics'], 'readwrite');
+      const store = transaction.objectStore('topics');
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async getAllMessagesByTopic(topicId) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['messages'], 'readonly');
@@ -81,7 +150,20 @@ class StorageService {
     });
   }
 
+  async getAllMessages() {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['messages'], 'readonly');
+      const store = transaction.objectStore('messages');
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async addMessage(message) {
+    await this.init();
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['messages'], 'readwrite');
@@ -92,11 +174,15 @@ class StorageService {
     });
   }
 
+  async putMessage(message) {
+    await this.init();
   async deleteMessage(id) {
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['messages'], 'readwrite');
       const store = transaction.objectStore('messages');
+      const request = store.put(message);
+      request.onsuccess = () => resolve(request.result);
       const request = store.delete(id);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
@@ -104,6 +190,7 @@ class StorageService {
   }
 
   async clearMessagesByTopic(topicId) {
+     await this.init();
      return new Promise((resolve, reject) => {
         if (!this.db) { reject('DB not initialized'); return; }
         const transaction = this.db.transaction(['messages'], 'readwrite');
@@ -129,6 +216,48 @@ class StorageService {
      });
   }
 
+  async getAllPrompts() {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['prompts'], 'readonly');
+      const store = transaction.objectStore('prompts');
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async addPrompt(prompt) {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['prompts'], 'readwrite');
+      const store = transaction.objectStore('prompts');
+      const request = store.add(prompt);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async updatePrompt(prompt) {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['prompts'], 'readwrite');
+      const store = transaction.objectStore('prompts');
+      const request = store.put(prompt);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async deletePrompt(id) {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['prompts'], 'readwrite');
+      const store = transaction.objectStore('prompts');
   async deleteTopic(id) {
     await this.clearMessagesByTopic(id);
     return new Promise((resolve, reject) => {

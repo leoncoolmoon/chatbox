@@ -23,12 +23,6 @@ self.addEventListener('install', event => {
   );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
-  );
-});
 self.addEventListener('activate', function (event) {
   event.waitUntil(
     caches.keys().then(function (cacheNames) {
