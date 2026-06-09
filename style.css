@@ -174,24 +174,36 @@ body {
 }
 
 .header-row {
-  padding: 10px 20px;
+  padding: 5px 15px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--input-border);
 }
 
+#titleHead {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
 .input-area {
-  padding: 15px 20px;
+  padding: 8px 15px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
+  border-top: 1px solid var(--input-border);
 }
 
 .control-row {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.control-row button {
+  padding: 5px 10px;
+  font-size: 12px;
 }
 
 .prompt-container {
@@ -201,13 +213,19 @@ body {
 
 #prompt-input {
   flex: 1;
-  height: 80px;
-  padding: 10px;
+  height: 60px;
+  padding: 8px;
   border-radius: 8px;
   border: 1px solid var(--input-border);
   background-color: var(--input-bg);
   color: var(--text-color);
   resize: none;
+  font-size: 14px;
+}
+
+#enter-prompt-button {
+  height: 60px;
+  padding: 0 15px;
 }
 
 #chat-container {
@@ -411,6 +429,19 @@ button:hover {
   margin: 10px 0;
 }
 
+.checkbox-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.checkbox-container input {
+  width: auto;
+  margin: 0;
+}
+
 .tree-node.selected {
   background-color: rgba(255, 235, 59, 0.1);
   outline: 1px dashed #fdd835;
@@ -448,6 +479,10 @@ button:hover {
 }
 
 @media (max-width: 768px) {
+  #titleHead {
+    font-size: 1.1rem;
+  }
+
   .mobile-only {
     display: block;
   }
@@ -486,11 +521,21 @@ button:hover {
   }
 
   .prompt-container {
-    flex-direction: column;
+    flex-direction: row;
+    align-items: flex-end;
   }
 
   #prompt-input {
-    height: 60px;
+    height: 50px;
+  }
+
+  #enter-prompt-button {
+    height: 50px;
+    padding: 0 12px;
+  }
+
+  .portability-buttons button, .action-buttons button {
+    min-width: 80px;
   }
 }
 
@@ -540,13 +585,16 @@ button:hover {
 .portability-buttons, .action-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 0 15px 10px 15px;
 }
 
 .portability-buttons button, .action-buttons button {
   flex: 1;
-  min-width: 120px;
+  min-width: 100px;
+  font-size: 12px;
+  padding: 6px 10px;
 }
 
 /* ===== Conversation Tree — branch lines ===== */

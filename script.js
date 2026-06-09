@@ -1,6 +1,6 @@
 const apiKeyInput = document.getElementById('api-key-input');
 const startRecognitionButton = document.getElementById('start-recognition-button');
-const enterPromoteButton = document.getElementById('enter-promot-button');
+const enterPromptButton = document.getElementById('enter-prompt-button');
 const promptInput = document.getElementById('prompt-input');
 const conversationDisplay = document.getElementById('conversation-display');
 const voiceAnswer = document.getElementById('voice');
@@ -1027,16 +1027,16 @@ function setColorMode(mode) {
     document.documentElement.setAttribute('data-theme', theme);
 }
 
-if (enterPromoteButton) {
+if (enterPromptButton) {
     // Left click: send message
-    enterPromoteButton.onclick = () => {
+    enterPromptButton.onclick = () => {
         if (promptInput.value.trim()) {
             chat([{ role: "user", content: promptInput.value }]);
             promptInput.value = "";
         }
     };
     // Right click: clear topic history (like original)
-    enterPromoteButton.addEventListener('contextmenu', async (e) => {
+    enterPromptButton.addEventListener('contextmenu', async (e) => {
         e.preventDefault();
         if (confirm("Clear conversation history for this topic?")) {
             if (currentTopicId) {
@@ -1367,7 +1367,9 @@ function loadLanguage(lang) {
         if (selectPromptButton) selectPromptButton.textContent = data.button15;
         exportSettingsBtn.textContent = data.button10;
         importSettingsBtn.textContent = data.button11;
-        enterPromoteButton.textContent = data.button12;
+        enterPromptButton.textContent = data.button12;
+        if (clearButton) clearButton.textContent = data.button3;
+        if (saveButton) saveButton.textContent = data.button4;
 
         you = data.text1;
         bot = data.text2;
