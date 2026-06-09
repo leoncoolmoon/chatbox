@@ -9,7 +9,7 @@ const pitchValue = document.querySelector(".pitch-value");
 const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
 const clearButton = document.getElementById('clear-conversation-button');
-const saveButton = document.getElementById('save-conversation-button');
+const saveButton = document.getElementById('download-conversation-button');
 const languageSelect = document.getElementById('language-select');
 const temperatureRange = document.getElementById('temperature');
 const temperatureValue = document.getElementById('temperatureValue');
@@ -590,6 +590,13 @@ async function loadTopics() {
 }
 
 async function switchTopic(id) {
+    // Enable sidebar actions when a topic is selected
+    const sidebarActions = document.querySelector('.sidebar-actions');
+    if (sidebarActions) {
+        const buttons = sidebarActions.querySelectorAll('button');
+        buttons.forEach(btn => btn.disabled = false);
+    }
+
     isBatchCopyMode = false;
     batchSelectedIds.clear();
     const batchBtn = document.getElementById('batch-copy-button');
@@ -772,6 +779,16 @@ async function loadPrompts() {
 // Initial Load
 window.addEventListener('load', async () => {
     await storage.init();
+
+    // Disable topic-specific sidebar actions until a topic is selected
+    const sidebarActions = document.querySelector('.sidebar-actions');
+    if (sidebarActions) {
+        const clearBtn = document.getElementById('clear-conversation-button');
+        const downloadBtn = document.getElementById('download-conversation-button');
+        if (clearBtn) clearBtn.disabled = true;
+        if (downloadBtn) downloadBtn.disabled = true;
+    }
+
     await migrateFromCookies();
 
     // Settings 默认收起，tree-section 占满
