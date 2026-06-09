@@ -416,22 +416,6 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
         + (node.id === currentMessageId ? ' active' : '')
         + (selectedContextIds.has(node.id) ? ' selected' : '');
 
-    if (isBatchCopyMode) {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'tree-checkbox';
-        checkbox.checked = batchSelectedIds.has(node.id);
-        checkbox.onclick = (e) => {
-            e.stopPropagation();
-        };
-        checkbox.onchange = (e) => {
-            if (checkbox.checked) batchSelectedIds.add(node.id);
-            else batchSelectedIds.delete(node.id);
-            updateBatchCopyButton();
-        };
-        div.prepend(checkbox);
-    }
-
     const hasChildren = node.children && node.children.length > 0;
 
     // Collapse toggle (only when there are children)
@@ -458,15 +442,31 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     label.title = node?.content ? node.content.replace(/<\/?[^>]+(>|$)/g, "").replace(/&nbsp;/g, " ").slice(0, 600) : "";
     div.appendChild(label);
 
-    // Delete button
-    const deleteBtn = document.createElement('span');
-    deleteBtn.className = 'tree-delete-btn';
-    deleteBtn.textContent = '×';
-    deleteBtn.onclick = (e) => {
-        e.stopPropagation();
-        deleteMessageUI(node.id);
-    };
-    div.appendChild(deleteBtn);
+    // Delete button or Checkbox
+    if (isBatchCopyMode) {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'tree-checkbox';
+        checkbox.checked = batchSelectedIds.has(node.id);
+        checkbox.onclick = (e) => {
+            e.stopPropagation();
+        };
+        checkbox.onchange = (e) => {
+            if (checkbox.checked) batchSelectedIds.add(node.id);
+            else batchSelectedIds.delete(node.id);
+            updateBatchCopyButton();
+        };
+        div.appendChild(checkbox);
+    } else {
+        const deleteBtn = document.createElement('span');
+        deleteBtn.className = 'tree-delete-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteMessageUI(node.id);
+        };
+        div.appendChild(deleteBtn);
+    }
 
     div.onclick = async (e) => {
         if (e.ctrlKey || e.metaKey) {

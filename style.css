@@ -411,23 +411,6 @@ button:hover {
   margin: 10px 0;
 }
 
-.tree-node {
-  padding: 6px 10px;
-  margin: 4px 0;
-  border-radius: 4px;
-  font-size: 12px;
-  border-left: 2px solid var(--input-border);
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tree-node.active {
-  background-color: var(--active-item-bg);
-  border-left-color: var(--accent-color);
-}
-
 .tree-node.selected {
   background-color: rgba(255, 235, 59, 0.1);
   outline: 1px dashed #fdd835;
@@ -643,13 +626,11 @@ button:hover {
 }
 
 .tree-checkbox {
-  margin-right: 8px;
+  width: auto;
+  margin-bottom: 0;
+  margin-left: auto;
   cursor: pointer;
   flex-shrink: 0;
-}
-
-.tree-node > span:first-of-type {
-  /* No longer handles truncation directly as there might be a toggle button before it */
 }
 
 .tree-label {
@@ -658,6 +639,7 @@ button:hover {
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
+  margin-right: 8px;
 }
 
 .tree-node:hover {
