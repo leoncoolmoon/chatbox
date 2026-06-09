@@ -17,24 +17,20 @@ class StorageService {
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
 
-        // Settings store
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings');
         }
 
-        // Topics store
         if (!db.objectStoreNames.contains('topics')) {
           db.createObjectStore('topics', { keyPath: 'id', autoIncrement: true });
         }
 
-        // Messages store
         if (!db.objectStoreNames.contains('messages')) {
           const messageStore = db.createObjectStore('messages', { keyPath: 'id', autoIncrement: true });
           messageStore.createIndex('topicId', 'topicId', { unique: false });
           messageStore.createIndex('parentId', 'parentId', { unique: false });
         }
 
-        // Prompts store
         if (!db.objectStoreNames.contains('prompts')) {
           db.createObjectStore('prompts', { keyPath: 'id', autoIncrement: true });
         }
@@ -137,6 +133,18 @@ class StorageService {
     });
   }
 
+  async deleteTopic(id) {
+    await this.clearMessagesByTopic(id);
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['topics'], 'readwrite');
+      const store = transaction.objectStore('topics');
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   async getAllMessagesByTopic(topicId) {
     await this.init();
     return new Promise((resolve, reject) => {
@@ -176,13 +184,22 @@ class StorageService {
 
   async putMessage(message) {
     await this.init();
-  async deleteMessage(id) {
     return new Promise((resolve, reject) => {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['messages'], 'readwrite');
       const store = transaction.objectStore('messages');
       const request = store.put(message);
       request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async deleteMessage(id) {
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['messages'], 'readwrite');
+      const store = transaction.objectStore('messages');
       const request = store.delete(id);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
@@ -190,30 +207,30 @@ class StorageService {
   }
 
   async clearMessagesByTopic(topicId) {
-     await this.init();
-     return new Promise((resolve, reject) => {
-        if (!this.db) { reject('DB not initialized'); return; }
-        const transaction = this.db.transaction(['messages'], 'readwrite');
-        const store = transaction.objectStore('messages');
-        if (topicId === undefined) {
-            const request = store.clear();
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        } else {
-            const index = store.index('topicId');
-            const request = index.openKeyCursor(IDBKeyRange.only(topicId));
-            request.onsuccess = (event) => {
-                const cursor = event.target.result;
-                if (cursor) {
-                    store.delete(cursor.primaryKey);
-                    cursor.continue();
-                } else {
-                    resolve();
-                }
-            };
-            request.onerror = () => reject(request.error);
-        }
-     });
+    await this.init();
+    return new Promise((resolve, reject) => {
+      if (!this.db) { reject('DB not initialized'); return; }
+      const transaction = this.db.transaction(['messages'], 'readwrite');
+      const store = transaction.objectStore('messages');
+      if (topicId === undefined) {
+        const request = store.clear();
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      } else {
+        const index = store.index('topicId');
+        const request = index.openKeyCursor(IDBKeyRange.only(topicId));
+        request.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if (cursor) {
+            store.delete(cursor.primaryKey);
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        };
+        request.onerror = () => reject(request.error);
+      }
+    });
   }
 
   async getAllPrompts() {
@@ -258,12 +275,6 @@ class StorageService {
       if (!this.db) { reject('DB not initialized'); return; }
       const transaction = this.db.transaction(['prompts'], 'readwrite');
       const store = transaction.objectStore('prompts');
-  async deleteTopic(id) {
-    await this.clearMessagesByTopic(id);
-    return new Promise((resolve, reject) => {
-      if (!this.db) { reject('DB not initialized'); return; }
-      const transaction = this.db.transaction(['topics'], 'readwrite');
-      const store = transaction.objectStore('topics');
       const request = store.delete(id);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
