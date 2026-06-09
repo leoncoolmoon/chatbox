@@ -72,6 +72,30 @@ body {
   border-bottom: 1px solid var(--input-border);
 }
 
+.tree-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tree-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.tree-controls button {
+  padding: 4px 8px;
+  font-size: 16px;
+  background: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  line-height: 1;
+}
+
+.tree-controls button:hover {
+  background: var(--active-item-bg);
+}
+
 .sidebar-controls {
   display: flex;
   gap: 10px;
@@ -387,23 +411,6 @@ button:hover {
   margin: 10px 0;
 }
 
-.tree-node {
-  padding: 6px 10px;
-  margin: 4px 0;
-  border-radius: 4px;
-  font-size: 12px;
-  border-left: 2px solid var(--input-border);
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tree-node.active {
-  background-color: var(--active-item-bg);
-  border-left-color: var(--accent-color);
-}
-
 .tree-node.selected {
   background-color: rgba(255, 235, 59, 0.1);
   outline: 1px dashed #fdd835;
@@ -607,7 +614,7 @@ button:hover {
   position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   padding: 6px 10px;
   margin: 3px 0;
   border-radius: 6px;
@@ -618,8 +625,12 @@ button:hover {
   transition: background-color 0.15s, border-color 0.15s;
 }
 
-.tree-node > span:first-of-type {
-  /* No longer handles truncation directly as there might be a toggle button before it */
+.tree-checkbox {
+  width: auto;
+  margin-bottom: 0;
+  margin-left: auto;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .tree-label {
@@ -628,6 +639,7 @@ button:hover {
   text-overflow: ellipsis;
   flex: 1;
   min-width: 0;
+  margin-right: 8px;
 }
 
 .tree-node:hover {

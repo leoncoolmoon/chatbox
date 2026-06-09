@@ -52,6 +52,8 @@ var currentMessageId = null;
 var activeChatAbortController = null;
 var isGenerating = false;
 var selectedContextIds = new Set();
+var isBatchCopyMode = false;
+var batchSelectedIds = new Set();
 var voice = false;
 var you = "You";
 var bot = "Chatbot";
@@ -66,6 +68,9 @@ var inputRequired = "Please enter both name and content.";
 var deleteConfirm = "Delete this message?";
 var deleteTopicConfirm = "Delete this topic and all its messages?";
 var stoppedText = "Stopped";
+var labelCancel = "Cancel";
+var labelConfirm = "Confirm";
+var labelBatchCopy = "Batch Copy";
 var historyList = [];
 var model = "gpt-3.5-turbo";
 var temperature = 0.7;
@@ -437,15 +442,31 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     label.title = node?.content ? node.content.replace(/<\/?[^>]+(>|$)/g, "").replace(/&nbsp;/g, " ").slice(0, 600) : "";
     div.appendChild(label);
 
-    // Delete button
-    const deleteBtn = document.createElement('span');
-    deleteBtn.className = 'tree-delete-btn';
-    deleteBtn.textContent = '×';
-    deleteBtn.onclick = (e) => {
-        e.stopPropagation();
-        deleteMessageUI(node.id);
-    };
-    div.appendChild(deleteBtn);
+    // Delete button or Checkbox
+    if (isBatchCopyMode) {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'tree-checkbox';
+        checkbox.checked = batchSelectedIds.has(node.id);
+        checkbox.onclick = (e) => {
+            e.stopPropagation();
+        };
+        checkbox.onchange = (e) => {
+            if (checkbox.checked) batchSelectedIds.add(node.id);
+            else batchSelectedIds.delete(node.id);
+            updateBatchCopyButton();
+        };
+        div.appendChild(checkbox);
+    } else {
+        const deleteBtn = document.createElement('span');
+        deleteBtn.className = 'tree-delete-btn';
+        deleteBtn.textContent = '×';
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteMessageUI(node.id);
+        };
+        div.appendChild(deleteBtn);
+    }
 
     div.onclick = async (e) => {
         if (e.ctrlKey || e.metaKey) {
@@ -569,6 +590,13 @@ async function loadTopics() {
 }
 
 async function switchTopic(id) {
+    isBatchCopyMode = false;
+    batchSelectedIds.clear();
+    const batchBtn = document.getElementById('batch-copy-button');
+    if (batchBtn) batchBtn.textContent = '📋';
+    const selectAllBtn = document.getElementById('select-all-button');
+    if (selectAllBtn) selectAllBtn.style.display = 'none';
+
     currentTopicId = id;
     await storage.setSetting('currentTopicId', id);
     const messages = await storage.getAllMessagesByTopic(id);
@@ -577,6 +605,57 @@ async function switchTopic(id) {
     renderMessages(branch);
     await loadTopics();
     updateTree();
+}
+
+function toggleBatchCopyMode() {
+    isBatchCopyMode = !isBatchCopyMode;
+    const batchBtn = document.getElementById('batch-copy-button');
+    const selectAllBtn = document.getElementById('select-all-button');
+
+    if (isBatchCopyMode) {
+        batchSelectedIds.clear();
+        if (selectAllBtn) selectAllBtn.style.display = 'inline-block';
+        updateBatchCopyButton();
+    } else {
+        batchSelectedIds.clear();
+        if (batchBtn) {
+            batchBtn.textContent = '📋';
+            batchBtn.title = labelBatchCopy;
+        }
+        if (selectAllBtn) selectAllBtn.style.display = 'none';
+    }
+    updateTree();
+}
+
+function updateBatchCopyButton() {
+    const batchBtn = document.getElementById('batch-copy-button');
+    if (!batchBtn) return;
+    if (batchSelectedIds.size > 0) {
+        batchBtn.textContent = '✅';
+        batchBtn.title = labelConfirm;
+    } else {
+        batchBtn.textContent = '❌';
+        batchBtn.title = labelCancel;
+    }
+}
+
+async function performBatchCopy() {
+    if (batchSelectedIds.size === 0) return;
+    const allMessages = await storage.getAllMessagesByTopic(currentTopicId);
+    const selectedMessages = allMessages.filter(m => batchSelectedIds.has(m.id));
+    selectedMessages.sort((a, b) => a.id - b.id);
+
+    const copyText = selectedMessages.map(m => {
+        const role = m.role === 'user' ? you : bot;
+        return `${role}: ${m.content}`;
+    }).join('\n\n');
+
+    try {
+        await navigator.clipboard.writeText(copyText);
+        alert('Copied to clipboard');
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+    }
 }
 
 // Model Fetching
@@ -811,6 +890,39 @@ window.addEventListener('load', async () => {
             bestAssistant = "";
             await storage.setSetting('systemPrompt', "");
             loadPrompts();
+        };
+    }
+
+    const batchCopyBtn = document.getElementById('batch-copy-button');
+    if (batchCopyBtn) {
+        batchCopyBtn.onclick = async () => {
+            if (!isBatchCopyMode) {
+                toggleBatchCopyMode();
+            } else {
+                if (batchSelectedIds.size > 0) {
+                    await performBatchCopy();
+                    toggleBatchCopyMode();
+                } else {
+                    toggleBatchCopyMode();
+                }
+            }
+        };
+    }
+
+    const selectAllBtn = document.getElementById('select-all-button');
+    if (selectAllBtn) {
+        selectAllBtn.onclick = async () => {
+            const allMessages = await storage.getAllMessagesByTopic(currentTopicId);
+            const allIds = allMessages.filter(m => m.role !== 'system').map(m => m.id);
+            const allSelected = allIds.every(id => batchSelectedIds.has(id));
+
+            if (allSelected) {
+                allIds.forEach(id => batchSelectedIds.delete(id));
+            } else {
+                allIds.forEach(id => batchSelectedIds.add(id));
+            }
+            updateBatchCopyButton();
+            updateTree();
         };
     }
 });
@@ -1239,6 +1351,13 @@ function loadLanguage(lang) {
         if (data.text9) deleteConfirm = data.text9;
         if (data.text10) deleteTopicConfirm = data.text10;
         if (data.text11) stoppedText = data.text11;
+
+        if (data.label20) labelBatchCopy = data.label20;
+        if (data.label22) labelCancel = data.label22;
+        if (data.label23) labelConfirm = data.label23;
+
+        if (document.getElementById("batch-copy-button")) document.getElementById("batch-copy-button").title = labelBatchCopy;
+        if (document.getElementById("select-all-button")) document.getElementById("select-all-button").title = data.label21;
 
         newTopicButton.textContent = data.button6;
         exportHistoryBtn.textContent = data.button7;
