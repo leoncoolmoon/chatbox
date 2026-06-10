@@ -4,7 +4,7 @@ const maxSearch = 10;
 var searchCounter = 0;
 window.addEventListener('load', () => {
     const toolbar = document.getElementById('toolbar');
-    const display = document.getElementById('conversation-display');
+    const display = document.getElementById('chat-container');//conversation-display');
     if (toolbar && display) {
         addSearch(toolbar, display);
     }
