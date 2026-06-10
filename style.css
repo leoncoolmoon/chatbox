@@ -189,8 +189,18 @@ body {
 }
 
 #menu-toggle, #mobile-settings-button {
-  font-size: 18px;
-  padding: 4px 8px;
+  font-size: 20px;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  background-color: transparent;
+  color: var(--accent-color);
+  border: 1px solid var(--input-border);
+}
+
+#menu-toggle:hover, #mobile-settings-button:hover {
+  background-color: var(--active-item-bg);
+  color: var(--accent-color);
 }
 
 .input-area {
@@ -245,20 +255,41 @@ body {
 }
 
 #start-recognition-button, #enter-prompt-button {
-  height: 50px;
-  width: 50px;
+  height: 44px;
+  width: 44px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 18px;
   border-radius: 8px;
   flex-shrink: 0;
+  background-color: var(--button-bg);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+#start-recognition-button:hover, #enter-prompt-button:hover {
+  background-color: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+#start-recognition-button.recording {
+  background-color: #f44336;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); }
 }
 
 #prompt-input {
   flex: 1;
-  height: 50px;
+  height: 44px;
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--input-border);
@@ -275,14 +306,76 @@ body {
   flex-direction: column;
   padding: 0 20px;
   overflow: hidden;
+  position: relative;
 }
 
 #toolbar {
-  position: fixed;
-  top: 10px;
-  left: 60px;
+  position: absolute;
+  top: 12px;
+  left: 12px;
   z-index: 100;
   display: flex;
+  pointer-events: none;
+}
+
+#toolbar * {
+  pointer-events: auto;
+}
+
+#searchToolButton {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#searchToolButton:hover {
+  background-color: var(--active-item-bg);
+  color: var(--accent-color);
+}
+
+#searchbar {
+  background: var(--bg-color);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 8px;
+  margin-top: 5px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  display: none;
+  gap: 8px;
+  align-items: center;
+}
+
+#searchInput {
+  margin-bottom: 0;
+  width: 150px;
+  height: 32px;
+}
+
+#searchButton, #nextButton, #previousButton, #clearSearch {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 16px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+}
+
+#searchButton:hover, #nextButton:hover, #previousButton:hover, #clearSearch:hover {
+  background-color: var(--active-item-bg);
+  color: var(--accent-color);
+}
+
+#searchButton {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
 }
 
 #conversation-display {
@@ -453,17 +546,35 @@ input, select {
 
 button {
   padding: 8px 16px;
-  border-radius: 6px;
-  border: none;
+  border-radius: 8px;
+  border: 1px solid transparent;
   background-color: var(--button-bg);
   color: white;
   cursor: pointer;
   font-size: 14px;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
 }
 
 button:hover {
-  opacity: 0.9;
+  background-color: var(--button-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .range-group {
@@ -562,9 +673,8 @@ input:checked + .switch-slider:before {
   }
 
   #toolbar {
-    top: auto;
-    bottom: 80px;
-    left: 20px;
+    top: 10px;
+    left: 10px;
   }
 
   .input-area {
@@ -573,14 +683,14 @@ input:checked + .switch-slider:before {
   }
 
   #start-recognition-button, #enter-prompt-button {
-    height: 44px;
-    width: 44px;
-    font-size: 18px;
+    height: 40px;
+    width: 40px;
+    font-size: 16px;
     padding: 0;
   }
 
   #prompt-input {
-    height: 44px;
+    height: 40px;
     font-size: 14px;
   }
 
@@ -713,16 +823,17 @@ input:checked + .switch-slider:before {
 .sidebar-actions {
   margin-top: auto;
   border-top: 1px solid var(--input-border);
-  padding: 10px 15px;
+  padding: 15px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .sidebar-actions button {
   min-width: 0;
-  padding: 6px 4px;
-  font-size: 11px;
+  padding: 8px 4px;
+  font-size: 12px;
+  border-radius: 6px;
 }
 
 .portability-buttons button {
@@ -886,4 +997,17 @@ input:checked + .switch-slider:before {
 
 .tree-children.collapsed {
   display: none;
+}
+.search-option-label {
+  margin: 0 4px;
+  cursor: pointer;
+  color: #888;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+input:checked + .search-option-label {
+  color: var(--accent-color);
 }

@@ -8,6 +8,7 @@
   <title>Chatbot PWA</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="shortcut icon" href="favicon.png" type="image/x-icon">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5575230312973422"
      crossorigin="anonymous"></script>
@@ -20,8 +21,8 @@
       <div id="sidebar-header">
         <h3 id="topicsTitle">Topics</h3>
         <div class="sidebar-controls">
-          <button id="new-topic-button">+</button>
-          <button id="close-sidebar" class="mobile-only">×</button>
+          <button id="new-topic-button"><i class="ri-add-line"></i></button>
+          <button id="close-sidebar" class="mobile-only"><i class="ri-close-line"></i></button>
         </div>
       </div>
       <div id="topic-list"></div>
@@ -35,28 +36,27 @@
     </div>
 
     <div id="main-content">
-      <div id="toolbar"></div>
       <div class="header-row">
-        <button id="menu-toggle">☰</button>
+        <button id="menu-toggle"><i class="ri-menu-line"></i></button>
         <h2 id="titleHead">Chatbot PWA</h2>
-        <button id="mobile-settings-button" >⚙️</button>
+        <button id="mobile-settings-button" ><i class="ri-settings-3-line"></i></button>
       </div>
 
       <div class="input-area">
         <div class="input-main-row">
-          <button id="start-recognition-button" title="Start Talk">🎙️</button>
+          <button id="start-recognition-button" title="Start Talk"><i class="ri-mic-line"></i></button>
           <textarea id="prompt-input" placeholder="Enter prompt for ChatGPT"></textarea>
-          <button id="enter-prompt-button" title="Enter">➔</button>
+          <button id="enter-prompt-button" title="Enter"><i class="ri-send-plane-2-line"></i></button>
         </div>
 
         <div class="input-sub-row">
           <label class="checkbox-container">
             <input type="checkbox" id="voice"/>
             <span class="switch-slider"></span>
-            <span id="voiceLabel" title="Answer by voice">🔊</span>
+            <span id="voiceLabel" title="Answer by voice"><i class="ri-volume-up-line"></i></span>
           </label>
           <div class="file-row">
-            <label for="file-upload" id="file-upload-label" class="icon-button" title="Upload Files">📁</label>
+            <label for="file-upload" id="file-upload-label" class="icon-button" title="Upload Files"><i class="ri-file-upload-line"></i></label>
             <input type="file" id="file-upload" multiple style="display:none;"/>
             <div id="file-list"></div>
           </div>
@@ -64,6 +64,7 @@
       </div>
 
       <div id="chat-container">
+        <div id="toolbar"></div>
         <div id="conversation-display"></div>
       </div>
 
@@ -75,11 +76,11 @@
           <div class="tree-header-left">
             <h4 id="treeTitle">Conversation Tree</h4>
             <div class="tree-controls">
-              <button id="batch-copy-button">📋</button>
-              <button id="select-all-button" style="display:none;">☑️</button>
+              <button id="batch-copy-button"><i class="ri-file-copy-line"></i></button>
+              <button id="select-all-button" style="display:none;"><i class="ri-checkbox-multiple-line"></i></button>
             </div>
           </div>
-          <button id="close-tree" class="mobile-only">×</button>
+          <button id="close-tree" class="mobile-only"><i class="ri-close-line"></i></button>
         </div>
         <div id="tree-container"></div>
       </div>
@@ -87,7 +88,7 @@
       <div id="settings-section">
         <div class="section-header">
           <h4 id="settingDiv">Settings</h4>
-          <button id="close-settings" class="mobile-only">×</button>
+          <button id="close-settings" class="mobile-only"><i class="ri-close-line"></i></button>
         </div>
 
         <div id="modelSetting" class="setting-group">
@@ -118,13 +119,13 @@
           <label for="api-key-input" id="apiKeyInputLabel">API Key</label>
           <div class="input-with-toggle">
             <input id="api-key-input" type="password"/>
-            <button type="button" id="showKeyBtn">👁️</button>
+            <button type="button" id="showKeyBtn"><i class="ri-eye-line"></i></button>
           </div>
 
           <label for="model-input" id="modelSelectLabel">Model</label>
           <div class="model-select-container">
             <select id="model-input"></select>
-            <button id="fetch-models-button">🔄</button>
+            <button id="fetch-models-button"><i class="ri-refresh-line"></i></button>
           </div>
 
           <div class="range-group">

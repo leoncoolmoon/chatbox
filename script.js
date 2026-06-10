@@ -202,7 +202,7 @@ async function chat(message) {
   const userDiv = document.createElement('div');
   userDiv.className = 'userdiv';
   userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())} — Double-click to branch</p>`
-      + `<p class="userText">${filterXSS(transcript)} <span class="regen-chat" title="Regenerate">🔄</span></p>`;
+      + `<p class="userText">${filterXSS(transcript)} <span class="regen-chat" title="Regenerate"><i class="ri-refresh-line"></i></span></p>`;
   conversationDisplay.appendChild(userDiv);
 
   const regenBtn = userDiv.querySelector('.regen-chat');
@@ -225,7 +225,7 @@ async function chat(message) {
   const botDiv = document.createElement('div');
   botDiv.className = 'botdiv';
   botDiv.id = `waiting-${convIndex}`;
-  botDiv.innerHTML = `<p class="botText">${waiting} <span class="stop-chat" onclick="if(activeChatAbortController) activeChatAbortController.abort()">×</span></p>`;
+  botDiv.innerHTML = `<p class="botText">${waiting} <span class="stop-chat" onclick="if(activeChatAbortController) activeChatAbortController.abort()"><i class="ri-close-line"></i></span></p>`;
   conversationDisplay.appendChild(botDiv);
 
   conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
@@ -435,7 +435,7 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     // Role icon + label
     const label = document.createElement('span');
     label.className = 'tree-label';
-    label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content;
+    label.innerHTML = (node.role === 'user' ? '<i class="ri-user-line"></i> ' : '<i class="ri-robot-line"></i> ') + filterXSS(node.content);
     // Native tooltips can be unstable if content is too long or contains complex formatting.
     // Use raw content truncated to a safe length for stability.
     //label.title = filterXSS(node.content.slice(0, 1000).replace("<br>",""));
@@ -469,7 +469,7 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     } else {
         const deleteBtn = document.createElement('span');
         deleteBtn.className = 'tree-delete-btn';
-        deleteBtn.textContent = '×';
+        deleteBtn.innerHTML = '<i class="ri-delete-bin-line"></i>';
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
             deleteMessageUI(node.id);
@@ -513,7 +513,7 @@ function renderMessages(messages) {
         div.className = msg.role === 'user' ? 'userdiv' : 'botdiv';
 
         let html = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
-            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}${msg.role === 'user' ? ' <span class="regen-chat" title="Regenerate">🔄</span>' : ''}</p>`;
+            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}${msg.role === 'user' ? ' <span class="regen-chat" title="Regenerate"><i class="ri-refresh-line"></i></span>' : ''}</p>`;
 
         if (msg.role === 'assistant' && msg.metadata && showMetadataToggle.checked) {
             html += `<div class="bot-metadata">${msg.metadata}</div>`;
@@ -586,7 +586,7 @@ async function loadTopics() {
 
         const delBtn = document.createElement('span');
         delBtn.className = 'topic-delete-btn';
-        delBtn.textContent = '×';
+        delBtn.innerHTML = '<i class="ri-delete-bin-line"></i>';
         delBtn.onclick = (e) => {
             e.stopPropagation();
             deleteTopicUI(t.id);
@@ -609,7 +609,7 @@ async function switchTopic(id) {
     isBatchCopyMode = false;
     batchSelectedIds.clear();
     const batchBtn = document.getElementById('batch-copy-button');
-    if (batchBtn) batchBtn.textContent = '📋';
+    if (batchBtn) batchBtn.innerHTML = '<i class="ri-file-copy-line"></i>';
     const selectAllBtn = document.getElementById('select-all-button');
     if (selectAllBtn) selectAllBtn.style.display = 'none';
 
@@ -635,7 +635,7 @@ function toggleBatchCopyMode() {
     } else {
         batchSelectedIds.clear();
         if (batchBtn) {
-            batchBtn.textContent = '📋';
+            batchBtn.innerHTML = '<i class="ri-file-copy-line"></i>';
             batchBtn.title = labelBatchCopy;
         }
         if (selectAllBtn) selectAllBtn.style.display = 'none';
@@ -647,10 +647,10 @@ function updateBatchCopyButton() {
     const batchBtn = document.getElementById('batch-copy-button');
     if (!batchBtn) return;
     if (batchSelectedIds.size > 0) {
-        batchBtn.textContent = '✅';
+        batchBtn.innerHTML = '<i class="ri-check-line"></i>';
         batchBtn.title = labelConfirm;
     } else {
-        batchBtn.textContent = '❌';
+        batchBtn.innerHTML = '<i class="ri-close-line"></i>';
         batchBtn.title = labelCancel;
     }
 }
