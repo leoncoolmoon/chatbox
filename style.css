@@ -672,12 +672,6 @@ input:checked + .switch-slider:before {
     display: none;
   }
 
-  #toolbar {
-    top: auto;
-    bottom: 80px;
-    left: 20px;
-  }
-
   .input-area {
     padding: 5px 10px;
     gap: 3px;
