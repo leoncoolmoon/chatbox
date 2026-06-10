@@ -188,7 +188,7 @@ body {
   font-size: 1.2rem;
 }
 
-#menu-toggle, #mobile-settings-button {
+.menu-toggle, .settings-button {
   font-size: 20px;
   padding: 0;
   width: 36px;
@@ -198,7 +198,7 @@ body {
   border: 1px solid var(--input-border);
 }
 
-#menu-toggle:hover, #mobile-settings-button:hover {
+.menu-toggle:hover, .settings-button:hover {
   background-color: var(--active-item-bg);
   color: var(--accent-color);
 }
@@ -689,7 +689,7 @@ input:checked + .switch-slider:before {
     font-size: 14px;
   }
 
-  #menu-toggle, #mobile-settings-button {
+  .menu-toggle, .settings-button {
     position: fixed;
     bottom: 25px;
     z-index: 350;
@@ -707,15 +707,15 @@ input:checked + .switch-slider:before {
     transition: transform 0.2s, background-color 0.2s;
   }
 
-  #menu-toggle {
+  .menu-toggle {
     left: 25px;
   }
 
-  #mobile-settings-button {
+  .settings-button {
     right: 25px;
   }
 
-  #menu-toggle:hover, #mobile-settings-button:hover {
+  .menu-toggle:hover, .settings-button:hover {
     background-color: var(--button-hover);
     transform: scale(1.1);
   }

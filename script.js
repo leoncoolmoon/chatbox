@@ -38,8 +38,8 @@ const settingsImportFile = document.getElementById('settings-import-file');
 const showKeyBtn = document.getElementById('showKeyBtn');
 const fetchModelsBtn = document.getElementById('fetch-models-button');
 // model-input is now a <select>, no separate datalist needed
-const menuToggle = document.getElementById('menu-toggle');
-const mobileSettingsBtn = document.getElementById('mobile-settings-button');
+const menuToggle = document.getElementsByClassName('menu-toggle');
+const SettingsBtn = document.getElementByClassName('settings-button');
 const showMetadataToggle = document.getElementById('show-metadata-toggle');
 const closeSettingsBtn = document.getElementById('close-settings');
 const closeTreeBtn = document.getElementById('close-tree');
@@ -114,7 +114,7 @@ if (menuToggle) menuToggle.onclick = () => {
     else sidebar.classList.toggle('collapsed');
 };
 
-if (mobileSettingsBtn) mobileSettingsBtn.onclick = () => {
+if (SettingsBtn) SettingsBtn.onclick = () => {
     // 无论桌面还是移动，⚙️ 只控制 settings-section 的显示
     const settingsSection = document.getElementById('settings-section');
     if (settingsSection) settingsSection.classList.toggle('collapsed');
