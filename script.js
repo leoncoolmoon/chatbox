@@ -39,7 +39,7 @@ const showKeyBtn = document.getElementById('showKeyBtn');
 const fetchModelsBtn = document.getElementById('fetch-models-button');
 // model-input is now a <select>, no separate datalist needed
 const menuToggle = document.getElementsByClassName('menu-toggle');
-const settingsBtn = document.getElementByClassName('settings-button');
+const settingsBtn = document.getElementsByClassName('settings-button');
 const showMetadataToggle = document.getElementById('show-metadata-toggle');
 const closeSettingsBtn = document.getElementById('close-settings');
 const closeTreeBtn = document.getElementById('close-tree');
