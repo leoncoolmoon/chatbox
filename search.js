@@ -30,7 +30,8 @@ function addSearch(toolDiv, targetDiv) {
     //create the search tool button
     const searchToolButton = document.createElement('button');
     searchToolButton.setAttribute('id', 'searchToolButton');
-    searchToolButton.innerHTML = '<img src="search.svg" title = "search" style="height:1em;"/>';
+    searchToolButton.innerHTML = '<i class="ri-search-line"></i>';
+    searchToolButton.setAttribute('title', 'search');
     searchToolButton.addEventListener('click', function () {
         const isOpen = searchbar.style.display === 'flex';
         if (!isOpen) {
@@ -41,7 +42,7 @@ function addSearch(toolDiv, targetDiv) {
             uiDiv.style.top = rect.top + 'px';
             uiDiv.style.boxShadow = 'rgba(0, 0, 0, 0.5) 0.3em 0.3em 0.3em';
             searchbar.style.display = 'flex';
-            this.innerHTML = '<img src="close.svg" title="close" style="height:1em;"/>';
+            this.innerHTML = '<i class="ri-close-line"></i>';
             floated = true;
         } else {
             // 关闭：回到文档流，清除所有定位样式
@@ -50,7 +51,7 @@ function addSearch(toolDiv, targetDiv) {
             uiDiv.style.top = '';
             uiDiv.style.boxShadow = 'none';
             searchbar.style.display = 'none';
-            this.innerHTML = '<img src="search.svg" title="search" style="height:1em;"/>';
+            this.innerHTML = '<i class="ri-search-line"></i>';
             floated = false;
         }
     });
@@ -96,9 +97,8 @@ function addSearch(toolDiv, targetDiv) {
     caseSensitive.style.display = 'none';
     const caseSensitiveLabel = document.createElement('label');
     caseSensitiveLabel.setAttribute('for', 'caseSensitive');
-    caseSensitiveLabel.innerHTML = 'Aa';
-    caseSensitiveLabel.style.margin = '8px';
-    caseSensitiveLabel.style.color = '#888888';
+    caseSensitiveLabel.innerHTML = '<i class="ri-font-size" title="Case Sensitive"></i>';
+    caseSensitiveLabel.className = 'search-option-label';
 
     const matchWholeWord = document.createElement('input');
     matchWholeWord.setAttribute('id', 'matchWholeWord');
@@ -107,13 +107,12 @@ function addSearch(toolDiv, targetDiv) {
     matchWholeWord.style.display = 'none';
     const matchWholeWordLabel = document.createElement('label');
     matchWholeWordLabel.setAttribute('for', 'matchWholeWord');
-    matchWholeWordLabel.innerHTML = '〔ab〕';
-    matchWholeWordLabel.style.color = '#888888';
-    matchWholeWordLabel.style.margin = '8px 0px';
+    matchWholeWordLabel.innerHTML = '<i class="ri-text-snippet" title="Whole Word"></i>';
+    matchWholeWordLabel.className = 'search-option-label';
 
     const searchButton = document.createElement('button');
     searchButton.setAttribute('id', 'searchButton');
-    searchButton.innerHTML = '✔';
+    searchButton.innerHTML = '<i class="ri-check-line"></i>';
     searchButton.addEventListener('click', function () {
         if (searchCounter < maxSearch) {
             var tagName = 'searchListItem' + (searchCounter + 1);
@@ -147,17 +146,17 @@ function addSearch(toolDiv, targetDiv) {
     const nextButton = document.createElement('button');
     nextButton.setAttribute('id', 'nextButton');
     nextButton.style.display = 'none';
-    nextButton.innerHTML = '▶';
+    nextButton.innerHTML = '<i class="ri-arrow-right-s-line"></i>';
     nextButton.onclick = () => nextSearch();
     const previousButton = document.createElement('button');
     previousButton.setAttribute('id', 'previousButton');
     previousButton.style.display = 'none';
-    previousButton.innerHTML = '◀';
+    previousButton.innerHTML = '<i class="ri-arrow-left-s-line"></i>';
     previousButton.onclick = () => previousSearch();
 
     const clearSearch = document.createElement('button');
     clearSearch.setAttribute('id', 'clearSearch');
-    clearSearch.innerHTML = '✘';
+    clearSearch.innerHTML = '<i class="ri-close-line"></i>';
     clearSearch.style.display = 'none';
     clearSearch.addEventListener('click', function () {
         const spans = searchedDiv.querySelectorAll("span");

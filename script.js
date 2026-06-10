@@ -1,6 +1,6 @@
 const apiKeyInput = document.getElementById('api-key-input');
 const startRecognitionButton = document.getElementById('start-recognition-button');
-const enterPromoteButton = document.getElementById('enter-promot-button');
+const enterPromptButton = document.getElementById('enter-prompt-button');
 const promptInput = document.getElementById('prompt-input');
 const conversationDisplay = document.getElementById('conversation-display');
 const voiceAnswer = document.getElementById('voice');
@@ -9,7 +9,7 @@ const pitchValue = document.querySelector(".pitch-value");
 const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
 const clearButton = document.getElementById('clear-conversation-button');
-const saveButton = document.getElementById('save-conversation-button');
+const saveButton = document.getElementById('download-conversation-button');
 const languageSelect = document.getElementById('language-select');
 const temperatureRange = document.getElementById('temperature');
 const temperatureValue = document.getElementById('temperatureValue');
@@ -202,7 +202,7 @@ async function chat(message) {
   const userDiv = document.createElement('div');
   userDiv.className = 'userdiv';
   userDiv.innerHTML = `<p class="timeStemp">${getTimestamp(new Date())} — Double-click to branch</p>`
-      + `<p class="userText">${filterXSS(transcript)} <span class="regen-chat" title="Regenerate">🔄</span></p>`;
+      + `<p class="userText">${filterXSS(transcript)} <span class="regen-chat" title="Regenerate"><i class="ri-refresh-line"></i></span></p>`;
   conversationDisplay.appendChild(userDiv);
 
   const regenBtn = userDiv.querySelector('.regen-chat');
@@ -225,7 +225,7 @@ async function chat(message) {
   const botDiv = document.createElement('div');
   botDiv.className = 'botdiv';
   botDiv.id = `waiting-${convIndex}`;
-  botDiv.innerHTML = `<p class="botText">${waiting} <span class="stop-chat" onclick="if(activeChatAbortController) activeChatAbortController.abort()">×</span></p>`;
+  botDiv.innerHTML = `<p class="botText">${waiting} <span class="stop-chat" onclick="if(activeChatAbortController) activeChatAbortController.abort()"><i class="ri-close-line"></i></span></p>`;
   conversationDisplay.appendChild(botDiv);
 
   conversationDisplay.scrollTo(0, conversationDisplay.scrollHeight);
@@ -435,18 +435,21 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     // Role icon + label
     const label = document.createElement('span');
     label.className = 'tree-label';
-    label.textContent = (node.role === 'user' ? '👤 ' : '🤖 ') + node.content;
-    // Native tooltips can be unstable if content is too long or contains complex formatting.
-    // Use raw content truncated to a safe length for stability.
-    //label.title = filterXSS(node.content.slice(0, 1000).replace("<br>",""));
-    label.title = node?.content ? node.content.replace(/<\/?[^>]+(>|$)/g, "").replace(/&nbsp;/g, " ").slice(0, 600) : "";
+    // Strip HTML and newlines for a single-line preview in the tree
+    const cleanContent = node?.content ? node.content.replace(/<\/?[^>]+(>|$)/g, "").replace(/[\r\n]+/g, " ") : "";
+    label.innerHTML = (node.role === 'user' ? '<i class="ri-user-line"></i> ' : '<i class="ri-robot-line"></i> ') + filterXSS(cleanContent);
+    // Tooltip shows the first 600 characters
+    label.title = cleanContent.slice(0, 600);
     div.appendChild(label);
 
     // Delete button or Checkbox
     if (isBatchCopyMode) {
+        const label = document.createElement('label');
+        label.className = 'checkbox-container';
+        label.style.marginLeft = 'auto';
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.className = 'tree-checkbox';
         checkbox.checked = batchSelectedIds.has(node.id);
         checkbox.onclick = (e) => {
             e.stopPropagation();
@@ -456,11 +459,17 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
             else batchSelectedIds.delete(node.id);
             updateBatchCopyButton();
         };
-        div.appendChild(checkbox);
+
+        const slider = document.createElement('span');
+        slider.className = 'switch-slider';
+
+        label.appendChild(checkbox);
+        label.appendChild(slider);
+        div.appendChild(label);
     } else {
         const deleteBtn = document.createElement('span');
         deleteBtn.className = 'tree-delete-btn';
-        deleteBtn.textContent = '×';
+        deleteBtn.innerHTML = '<i class="ri-delete-bin-line"></i>';
         deleteBtn.onclick = (e) => {
             e.stopPropagation();
             deleteMessageUI(node.id);
@@ -504,7 +513,7 @@ function renderMessages(messages) {
         div.className = msg.role === 'user' ? 'userdiv' : 'botdiv';
 
         let html = `<p class="timeStemp">${getTimestamp(new Date(msg.timestamp))}${msg.role === 'user' ? ' — Double-click to branch' : ''}</p>`
-            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}${msg.role === 'user' ? ' <span class="regen-chat" title="Regenerate">🔄</span>' : ''}</p>`;
+            + `<p class="${msg.role === 'user' ? 'userText' : 'botText'}">${filterXSS(msg.content)}${msg.role === 'user' ? ' <span class="regen-chat" title="Regenerate"><i class="ri-refresh-line"></i></span>' : ''}</p>`;
 
         if (msg.role === 'assistant' && msg.metadata && showMetadataToggle.checked) {
             html += `<div class="bot-metadata">${msg.metadata}</div>`;
@@ -577,7 +586,7 @@ async function loadTopics() {
 
         const delBtn = document.createElement('span');
         delBtn.className = 'topic-delete-btn';
-        delBtn.textContent = '×';
+        delBtn.innerHTML = '<i class="ri-delete-bin-line"></i>';
         delBtn.onclick = (e) => {
             e.stopPropagation();
             deleteTopicUI(t.id);
@@ -590,10 +599,17 @@ async function loadTopics() {
 }
 
 async function switchTopic(id) {
+    // Enable sidebar actions when a topic is selected
+    const sidebarActions = document.querySelector('.sidebar-actions');
+    if (sidebarActions) {
+        const buttons = sidebarActions.querySelectorAll('button');
+        buttons.forEach(btn => btn.disabled = false);
+    }
+
     isBatchCopyMode = false;
     batchSelectedIds.clear();
     const batchBtn = document.getElementById('batch-copy-button');
-    if (batchBtn) batchBtn.textContent = '📋';
+    if (batchBtn) batchBtn.innerHTML = '<i class="ri-file-copy-line"></i>';
     const selectAllBtn = document.getElementById('select-all-button');
     if (selectAllBtn) selectAllBtn.style.display = 'none';
 
@@ -619,7 +635,7 @@ function toggleBatchCopyMode() {
     } else {
         batchSelectedIds.clear();
         if (batchBtn) {
-            batchBtn.textContent = '📋';
+            batchBtn.innerHTML = '<i class="ri-file-copy-line"></i>';
             batchBtn.title = labelBatchCopy;
         }
         if (selectAllBtn) selectAllBtn.style.display = 'none';
@@ -631,10 +647,10 @@ function updateBatchCopyButton() {
     const batchBtn = document.getElementById('batch-copy-button');
     if (!batchBtn) return;
     if (batchSelectedIds.size > 0) {
-        batchBtn.textContent = '✅';
+        batchBtn.innerHTML = '<i class="ri-check-line"></i>';
         batchBtn.title = labelConfirm;
     } else {
-        batchBtn.textContent = '❌';
+        batchBtn.innerHTML = '<i class="ri-close-line"></i>';
         batchBtn.title = labelCancel;
     }
 }
@@ -772,6 +788,16 @@ async function loadPrompts() {
 // Initial Load
 window.addEventListener('load', async () => {
     await storage.init();
+
+    // Disable topic-specific sidebar actions until a topic is selected
+    const sidebarActions = document.querySelector('.sidebar-actions');
+    if (sidebarActions) {
+        const clearBtn = document.getElementById('clear-conversation-button');
+        const downloadBtn = document.getElementById('download-conversation-button');
+        if (clearBtn) clearBtn.disabled = true;
+        if (downloadBtn) downloadBtn.disabled = true;
+    }
+
     await migrateFromCookies();
 
     // Settings 默认收起，tree-section 占满
@@ -1027,16 +1053,16 @@ function setColorMode(mode) {
     document.documentElement.setAttribute('data-theme', theme);
 }
 
-if (enterPromoteButton) {
+if (enterPromptButton) {
     // Left click: send message
-    enterPromoteButton.onclick = () => {
+    enterPromptButton.onclick = () => {
         if (promptInput.value.trim()) {
             chat([{ role: "user", content: promptInput.value }]);
             promptInput.value = "";
         }
     };
     // Right click: clear topic history (like original)
-    enterPromoteButton.addEventListener('contextmenu', async (e) => {
+    enterPromptButton.addEventListener('contextmenu', async (e) => {
         e.preventDefault();
         if (confirm("Clear conversation history for this topic?")) {
             if (currentTopicId) {
@@ -1228,10 +1254,11 @@ if (startRecognitionButton) {
         const recognition = new window.SpeechRecognition();
         recognition.lang = languageSelect ? languageSelect.value : navigator.language;
 
-        if (startRecognitionButton.textContent !== startTalk) {
+        if (startRecognitionButton.classList.contains('recording')) {
             // 当前是录音中 → 停止
             recognition.stop();
-            startRecognitionButton.textContent = startTalk;
+            startRecognitionButton.classList.remove('recording');
+            startRecognitionButton.title = startTalk;
         } else {
             // 当前是待机 → 开始录音
             recognition.addEventListener('result', e => {
@@ -1247,18 +1274,21 @@ if (startRecognitionButton) {
             });
 
             recognition.addEventListener('end', () => {
-                startRecognitionButton.textContent = startTalk;
+                startRecognitionButton.classList.remove('recording');
+                startRecognitionButton.title = startTalk;
             });
 
             recognition.addEventListener('error', (e) => {
-                startRecognitionButton.textContent = startTalk;
+                startRecognitionButton.classList.remove('recording');
+                startRecognitionButton.title = startTalk;
                 if (e.error === 'not-allowed') {
                     alert('麦克风权限被拒绝，请在浏览器地址栏左侧允许麦克风访问。');
                 }
             });
 
             recognition.start();
-            startRecognitionButton.textContent = stopTalk;
+            startRecognitionButton.classList.add('recording');
+            startRecognitionButton.title = stopTalk;
         }
     });
 }
@@ -1320,12 +1350,13 @@ function loadLanguage(lang) {
         document.title = data.title;
         document.getElementById("titleHead").innerHTML = data.title;
 
-        startRecognitionButton.textContent = data.button1;
+        startRecognitionButton.title = data.button1;
         startTalk = data.button1;
         stopTalk = data.button0;
 
         promptInput.setAttribute("placeholder", data.label1);
-        document.getElementById("voiceLabel").innerHTML = data.label2;
+        document.getElementById("voiceLabel").title = data.label2;
+        if (document.getElementById("file-upload-label")) document.getElementById("file-upload-label").title = data.label24 || "Upload";
         apiKeyInput.setAttribute("placeholder", data.label3);
         document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
 
@@ -1367,7 +1398,9 @@ function loadLanguage(lang) {
         if (selectPromptButton) selectPromptButton.textContent = data.button15;
         exportSettingsBtn.textContent = data.button10;
         importSettingsBtn.textContent = data.button11;
-        enterPromoteButton.textContent = data.button12;
+        enterPromptButton.title = data.button12 || data.button2;
+        if (clearButton) clearButton.textContent = data.button3;
+        if (saveButton) saveButton.textContent = data.button4;
 
         you = data.text1;
         bot = data.text2;
