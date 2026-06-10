@@ -669,19 +669,13 @@ input:checked + .switch-slider:before {
 
 @media (max-width: 768px) {
   .header-row {
-    display: flex;
-    border-bottom: 1px solid var(--input-border);
-    min-height: 44px;
-    padding: 5px 10px;
-  }
-
-  #titleHead {
     display: none;
   }
 
   #toolbar {
-    top: 55px; /* Account for mobile header */
-    left: 10px;
+    top: auto;
+    bottom: 80px;
+    left: 20px;
   }
 
   .input-area {
@@ -702,14 +696,34 @@ input:checked + .switch-slider:before {
   }
 
   #menu-toggle, #mobile-settings-button {
-    position: static;
-    background: transparent;
-    box-shadow: none;
-    border-radius: 8px;
-    width: 40px;
-    height: 40px;
-    color: var(--accent-color);
-    border: 1px solid var(--input-border);
+    position: fixed;
+    bottom: 25px;
+    z-index: 350;
+    background: var(--button-bg);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: transform 0.2s, background-color 0.2s;
+  }
+
+  #menu-toggle {
+    left: 25px;
+  }
+
+  #mobile-settings-button {
+    right: 25px;
+  }
+
+  #menu-toggle:hover, #mobile-settings-button:hover {
+    background-color: var(--button-hover);
+    transform: scale(1.1);
   }
 
   .mobile-only {
@@ -979,6 +993,7 @@ input:checked + .switch-slider:before {
   flex: 1;
   min-width: 0;
   margin-right: 8px;
+  display: block;
 }
 
 .tree-node:hover {
