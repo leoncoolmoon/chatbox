@@ -39,7 +39,7 @@ const showKeyBtn = document.getElementById('showKeyBtn');
 const fetchModelsBtn = document.getElementById('fetch-models-button');
 // model-input is now a <select>, no separate datalist needed
 const menuToggle = document.getElementsByClassName('menu-toggle');
-const SettingsBtn = document.getElementByClassName('settings-button');
+const settingsBtn = document.getElementByClassName('settings-button');
 const showMetadataToggle = document.getElementById('show-metadata-toggle');
 const closeSettingsBtn = document.getElementById('close-settings');
 const closeTreeBtn = document.getElementById('close-tree');
@@ -109,18 +109,24 @@ if (showKeyBtn) showKeyBtn.onclick = () => {
 
 const isMobile = () => window.innerWidth <= 768;
 
-if (menuToggle) menuToggle.onclick = () => {
-    if (isMobile()) sidebar.classList.toggle('open');
-    else sidebar.classList.toggle('collapsed');
-};
+if (menuToggle.length > 0) {
+    Array.from(menuToggle).forEach(btn => {
+        btn.onclick = () => {
+            if (isMobile()) sidebar.classList.toggle('open');
+            else sidebar.classList.toggle('collapsed');
+        };
+    });
+}
 
-if (SettingsBtn) SettingsBtn.onclick = () => {
-    // 无论桌面还是移动，⚙️ 只控制 settings-section 的显示
-    const settingsSection = document.getElementById('settings-section');
-    if (settingsSection) settingsSection.classList.toggle('collapsed');
-    // 移动端同时确保 right-panel 打开
-    if (isMobile()) rightPanel.classList.add('open');
-};
+if (settingsBtn.length > 0) {
+    Array.from(settingsBtn).forEach(btn => {
+        btn.onclick = () => {
+            const settingsSection = document.getElementById('settings-section');
+            if (settingsSection) settingsSection.classList.toggle('collapsed');
+            if (isMobile()) rightPanel.classList.add('open');
+        };
+    });
+}
 
 if (closeSidebarBtn) closeSidebarBtn.onclick = () => {
     sidebar.classList.remove('open');
