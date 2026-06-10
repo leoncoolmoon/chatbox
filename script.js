@@ -1254,10 +1254,11 @@ if (startRecognitionButton) {
         const recognition = new window.SpeechRecognition();
         recognition.lang = languageSelect ? languageSelect.value : navigator.language;
 
-        if (startRecognitionButton.textContent !== startTalk) {
+        if (startRecognitionButton.classList.contains('recording')) {
             // 当前是录音中 → 停止
             recognition.stop();
-            startRecognitionButton.textContent = startTalk;
+            startRecognitionButton.classList.remove('recording');
+            startRecognitionButton.title = startTalk;
         } else {
             // 当前是待机 → 开始录音
             recognition.addEventListener('result', e => {
@@ -1273,18 +1274,21 @@ if (startRecognitionButton) {
             });
 
             recognition.addEventListener('end', () => {
-                startRecognitionButton.textContent = startTalk;
+                startRecognitionButton.classList.remove('recording');
+                startRecognitionButton.title = startTalk;
             });
 
             recognition.addEventListener('error', (e) => {
-                startRecognitionButton.textContent = startTalk;
+                startRecognitionButton.classList.remove('recording');
+                startRecognitionButton.title = startTalk;
                 if (e.error === 'not-allowed') {
                     alert('麦克风权限被拒绝，请在浏览器地址栏左侧允许麦克风访问。');
                 }
             });
 
             recognition.start();
-            startRecognitionButton.textContent = stopTalk;
+            startRecognitionButton.classList.add('recording');
+            startRecognitionButton.title = stopTalk;
         }
     });
 }
@@ -1346,12 +1350,13 @@ function loadLanguage(lang) {
         document.title = data.title;
         document.getElementById("titleHead").innerHTML = data.title;
 
-        startRecognitionButton.textContent = data.button1;
+        startRecognitionButton.title = data.button1;
         startTalk = data.button1;
         stopTalk = data.button0;
 
         promptInput.setAttribute("placeholder", data.label1);
-        document.getElementById("voiceLabel").innerHTML = data.label2;
+        document.getElementById("voiceLabel").title = data.label2;
+        if (document.getElementById("file-upload-label")) document.getElementById("file-upload-label").title = data.label20 || "Upload";
         apiKeyInput.setAttribute("placeholder", data.label3);
         document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
 
@@ -1393,7 +1398,7 @@ function loadLanguage(lang) {
         if (selectPromptButton) selectPromptButton.textContent = data.button15;
         exportSettingsBtn.textContent = data.button10;
         importSettingsBtn.textContent = data.button11;
-        enterPromptButton.textContent = data.button12;
+        enterPromptButton.title = data.button12;
         if (clearButton) clearButton.textContent = data.button3;
         if (saveButton) saveButton.textContent = data.button4;
 

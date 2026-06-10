@@ -44,19 +44,20 @@
 
       <div class="input-area">
         <div class="input-main-row">
-          <button id="start-recognition-button">Start Talk</button>
+          <button id="start-recognition-button" title="Start Talk">🎙️</button>
           <textarea id="prompt-input" placeholder="Enter prompt for ChatGPT"></textarea>
-          <button id="enter-prompt-button">Enter</button>
+          <button id="enter-prompt-button" title="Enter">➔</button>
         </div>
 
         <div class="input-sub-row">
           <label class="checkbox-container">
             <input type="checkbox" id="voice"/>
             <span class="switch-slider"></span>
-            <span id="voiceLabel">Answer by voice</span>
+            <span id="voiceLabel" title="Answer by voice">🔊</span>
           </label>
           <div class="file-row">
-            <input type="file" id="file-upload" multiple/>
+            <label for="file-upload" id="file-upload-label" class="icon-button" title="Upload Files">📁</label>
+            <input type="file" id="file-upload" multiple style="display:none;"/>
             <div id="file-list"></div>
           </div>
         </div>

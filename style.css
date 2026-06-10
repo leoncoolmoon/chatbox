@@ -218,14 +218,25 @@ body {
 .file-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 10px;
 }
 
-#file-upload {
-  width: auto;
-  font-size: 11px;
-  margin-bottom: 0;
-  padding: 0;
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: var(--button-bg);
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  transition: opacity 0.2s;
+}
+
+.icon-button:hover {
+  opacity: 0.9;
 }
 
 #file-list {
@@ -233,30 +244,29 @@ body {
   color: #888;
 }
 
-#start-recognition-button {
+#start-recognition-button, #enter-prompt-button {
   height: 50px;
-  padding: 0 15px;
-  font-size: 13px;
-  white-space: nowrap;
+  width: 50px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border-radius: 8px;
+  flex-shrink: 0;
 }
 
 #prompt-input {
   flex: 1;
   height: 50px;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid var(--input-border);
   background-color: var(--input-bg);
   color: var(--text-color);
   resize: none;
   font-size: 14px;
   line-height: 1.4;
-}
-
-#enter-prompt-button {
-  height: 50px;
-  padding: 0 20px;
-  font-size: 14px;
 }
 
 #chat-container {
@@ -270,7 +280,7 @@ body {
 #toolbar {
   position: fixed;
   top: 10px;
-  right: 60px;
+  left: 60px;
   z-index: 100;
   display: flex;
 }
@@ -547,14 +557,14 @@ input:checked + .switch-slider:before {
 }
 
 @media (max-width: 768px) {
-  #titleHead {
+  .header-row {
     display: none;
   }
 
   #toolbar {
     top: auto;
     bottom: 80px;
-    right: 20px;
+    left: 20px;
   }
 
   .input-area {
@@ -562,18 +572,16 @@ input:checked + .switch-slider:before {
     gap: 3px;
   }
 
-  #start-recognition-button, #prompt-input, #enter-prompt-button {
-    height: 40px;
-    font-size: 13px;
-    padding: 0 10px;
+  #start-recognition-button, #enter-prompt-button {
+    height: 44px;
+    width: 44px;
+    font-size: 18px;
+    padding: 0;
   }
 
-  .header-row {
-    height: 0;
-    min-height: 0;
-    padding: 0;
-    border: none;
-    overflow: visible;
+  #prompt-input {
+    height: 44px;
+    font-size: 14px;
   }
 
   #menu-toggle {
