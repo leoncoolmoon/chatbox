@@ -435,11 +435,11 @@ function renderTreeNode(node, container, level = 0, parentRole = null) {
     // Role icon + label
     const label = document.createElement('span');
     label.className = 'tree-label';
-    label.innerHTML = (node.role === 'user' ? '<i class="ri-user-line"></i> ' : '<i class="ri-robot-line"></i> ') + filterXSS(node.content);
-    // Native tooltips can be unstable if content is too long or contains complex formatting.
-    // Use raw content truncated to a safe length for stability.
-    //label.title = filterXSS(node.content.slice(0, 1000).replace("<br>",""));
-    label.title = node?.content ? node.content.replace(/<\/?[^>]+(>|$)/g, "").replace(/&nbsp;/g, " ").slice(0, 600) : "";
+    // Strip HTML and newlines for a single-line preview in the tree
+    const cleanContent = node?.content ? node.content.replace(/<\/?[^>]+(>|$)/g, "").replace(/[\r\n]+/g, " ") : "";
+    label.innerHTML = (node.role === 'user' ? '<i class="ri-user-line"></i> ' : '<i class="ri-robot-line"></i> ') + filterXSS(cleanContent);
+    // Tooltip shows the first 600 characters
+    label.title = cleanContent.slice(0, 600);
     div.appendChild(label);
 
     // Delete button or Checkbox
@@ -1356,7 +1356,7 @@ function loadLanguage(lang) {
 
         promptInput.setAttribute("placeholder", data.label1);
         document.getElementById("voiceLabel").title = data.label2;
-        if (document.getElementById("file-upload-label")) document.getElementById("file-upload-label").title = data.label20 || "Upload";
+        if (document.getElementById("file-upload-label")) document.getElementById("file-upload-label").title = data.label24 || "Upload";
         apiKeyInput.setAttribute("placeholder", data.label3);
         document.getElementById("apiKeyInputLabel").innerHTML = data.label3;
 
@@ -1398,7 +1398,7 @@ function loadLanguage(lang) {
         if (selectPromptButton) selectPromptButton.textContent = data.button15;
         exportSettingsBtn.textContent = data.button10;
         importSettingsBtn.textContent = data.button11;
-        enterPromptButton.title = data.button12;
+        enterPromptButton.title = data.button12 || data.button2;
         if (clearButton) clearButton.textContent = data.button3;
         if (saveButton) saveButton.textContent = data.button4;
 

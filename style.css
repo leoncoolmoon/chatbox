@@ -669,11 +669,18 @@ input:checked + .switch-slider:before {
 
 @media (max-width: 768px) {
   .header-row {
+    display: flex;
+    border-bottom: 1px solid var(--input-border);
+    min-height: 44px;
+    padding: 5px 10px;
+  }
+
+  #titleHead {
     display: none;
   }
 
   #toolbar {
-    top: 10px;
+    top: 55px; /* Account for mobile header */
     left: 10px;
   }
 
@@ -694,36 +701,15 @@ input:checked + .switch-slider:before {
     font-size: 14px;
   }
 
-  #menu-toggle {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    z-index: 250;
-    background: var(--button-bg);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    border-radius: 50%;
+  #menu-toggle, #mobile-settings-button {
+    position: static;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 8px;
     width: 40px;
     height: 40px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  #mobile-settings-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 250;
-    background: var(--button-bg);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    color: var(--accent-color);
+    border: 1px solid var(--input-border);
   }
 
   .mobile-only {
@@ -770,17 +756,76 @@ input:checked + .switch-slider:before {
 }
 
 .input-with-toggle {
+  position: relative;
   display: flex;
-  gap: 5px;
+  align-items: center;
+}
+
+.input-with-toggle input {
+  margin-bottom: 0;
+  padding-right: 40px;
+}
+
+#showKeyBtn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--text-color);
+  border: none;
+  padding: 5px;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+#showKeyBtn:hover {
+  opacity: 1;
+  background: transparent;
+  transform: translateY(-50%);
+  box-shadow: none;
 }
 
 .model-select-container {
+  position: relative;
   display: flex;
-  gap: 5px;
+  align-items: center;
+}
+
+.model-select-container select {
+  margin-bottom: 0;
+  padding-left: 35px;
 }
 
 #fetch-models-button {
-  padding: 8px;
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--text-color);
+  border: none;
+  padding: 5px;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  z-index: 5;
+}
+
+#fetch-models-button:hover {
+  opacity: 1;
+  background: transparent;
+  transform: translateY(-50%);
+  box-shadow: none;
 }
 
 .prompt-item {
