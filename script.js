@@ -785,6 +785,7 @@ async function loadPrompts() {
             systemPromptInput.value = p.content;
             bestAssistant = p.content;
             await storage.setSetting('systemPrompt', bestAssistant);
+            await storage.setSetting('promptName', p.title);
             promptListDiv.style.display = 'none';
         };
         promptListDiv.appendChild(btn);
@@ -815,6 +816,13 @@ window.addEventListener('load', async () => {
     if (savedSystemPrompt) {
         bestAssistant = savedSystemPrompt;
         if (systemPromptInput) systemPromptInput.value = savedSystemPrompt;
+    } else {
+        if (systemPromptInput) systemPromptInput.value = bestAssistant;
+    }
+
+    const savedPromptName = await storage.getSetting('promptName');
+    if (savedPromptName && promptNameInput) {
+        promptNameInput.value = savedPromptName;
     }
 
     const savedProvider = await storage.getSetting('provider') || 'openai';
@@ -837,7 +845,7 @@ window.addEventListener('load', async () => {
     // Register Service Worker
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
-    selectLanguage();
+    await selectLanguage();
 
     // ── Post-Init Event Listeners ───────────────────────────
     // Attach listeners that use storage after it is initialized.
@@ -846,6 +854,12 @@ window.addEventListener('load', async () => {
         systemPromptInput.addEventListener('change', async () => {
             bestAssistant = systemPromptInput.value;
             await storage.setSetting('systemPrompt', bestAssistant);
+        });
+    }
+
+    if (promptNameInput) {
+        promptNameInput.addEventListener('change', async () => {
+            await storage.setSetting('promptName', promptNameInput.value);
         });
     }
 
@@ -874,10 +888,11 @@ window.addEventListener('load', async () => {
         });
     }
 
-    [themeSelect, temperatureRange, contextWindowRange].forEach(el => {
+    [themeSelect, temperatureRange, contextWindowRange, languageSelect].forEach(el => {
         if (el) el.addEventListener('change', async () => {
             await storage.setSetting(el.id, el.value);
             if (el.id === 'theme-select') setColorMode(el.value);
+            if (el.id === 'language-select') loadLanguage(el.value);
         });
     });
 
@@ -1340,8 +1355,11 @@ if (pitch) pitch.addEventListener('input', () => {
     if (pitchValue) pitchValue.textContent = parseFloat(pitch.value).toFixed(1);
 });
 
-function selectLanguage() {
-  var lang = navigator.language || navigator.userLanguage;
+async function selectLanguage() {
+  let lang = await storage.getSetting('language-select');
+  if (!lang) {
+    lang = navigator.language || navigator.userLanguage;
+  }
   if (languageSelect) languageSelect.value = lang;
   loadLanguage(lang);
 }
