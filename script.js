@@ -171,7 +171,7 @@ async function chat(message) {
 
   // System Prompt
   if (messagesToSend.length === 0 || messagesToSend[0].role !== "system") {
-    messagesToSend.unshift({ role: "system", content: bestAssistant });
+    messagesToSend.unshift({ role: "system", content: bestAssistant || "You are a helpful assistant." });
   }
 
   // Uploaded Files
@@ -920,6 +920,7 @@ window.addEventListener('load', async () => {
             } else {
                 await storage.addPrompt({ title, content });
             }
+            await storage.setSetting('promptName', title);
             loadPrompts();
         };
     }
@@ -936,6 +937,7 @@ window.addEventListener('load', async () => {
             systemPromptInput.value = "";
             bestAssistant = "";
             await storage.setSetting('systemPrompt', "");
+            await storage.setSetting('promptName', "");
             loadPrompts();
         };
     }
@@ -1175,8 +1177,10 @@ if (settingsImportFile) settingsImportFile.onchange = (e) => {
             }
             if (data.prompts) {
                 for (const p of data.prompts) {
-                    delete p.id;
-                    await storage.addPrompt(p);
+                    if (p.title && p.title.trim() && p.content && p.content.trim()) {
+                        delete p.id;
+                        await storage.addPrompt(p);
+                    }
                 }
             }
             location.reload();
