@@ -823,6 +823,8 @@ window.addEventListener('load', async () => {
     const savedPromptName = await storage.getSetting('promptName');
     if (savedPromptName && promptNameInput) {
         promptNameInput.value = savedPromptName;
+    } else if (promptNameInput) {
+        promptNameInput.value = "";
     }
 
     const savedProvider = await storage.getSetting('provider') || 'openai';
@@ -1403,6 +1405,9 @@ function loadLanguage(lang) {
         document.getElementById("topicsTitle").innerHTML = data.label16;
         document.getElementById("systemPromptLabel").innerHTML = data.label17;
         document.getElementById("promptNameLabel").innerHTML = data.label18;
+        if (promptNameInput && !promptNameInput.value.trim() && data.defaultPromptName) {
+            promptNameInput.value = data.defaultPromptName;
+        }
         if (document.getElementById("showMetadataLabel")) document.getElementById("showMetadataLabel").innerHTML = data.label19;
         if (data.text6) corsErrorMsg = data.text6;
         if (data.text7) overwriteConfirm = data.text7;

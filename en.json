@@ -33,6 +33,7 @@
     "label16": "Topics",
     "label17": "System Prompt",
     "label18": "Prompt Name",
+    "defaultPromptName": "Default",
     "label19": "Show Metadata (Model, Tokens)",
     "label20": "Batch Copy",
     "label21": "Select All/None",
