@@ -33,6 +33,7 @@
     "label16": "主题列表",
     "label17": "系统提示词",
     "label18": "提示词名称",
+    "defaultPromptName": "默认",
     "label19": "显示元信息 (模型, Tokens)",
     "label20": "批量复制",
     "label21": "全选/不选",

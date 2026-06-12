@@ -171,7 +171,7 @@ async function chat(message) {
 
   // System Prompt
   if (messagesToSend.length === 0 || messagesToSend[0].role !== "system") {
-    messagesToSend.unshift({ role: "system", content: bestAssistant });
+    messagesToSend.unshift({ role: "system", content: bestAssistant || "You are a helpful assistant." });
   }
 
   // Uploaded Files
@@ -785,6 +785,7 @@ async function loadPrompts() {
             systemPromptInput.value = p.content;
             bestAssistant = p.content;
             await storage.setSetting('systemPrompt', bestAssistant);
+            await storage.setSetting('promptName', p.title);
             promptListDiv.style.display = 'none';
         };
         promptListDiv.appendChild(btn);
@@ -815,6 +816,15 @@ window.addEventListener('load', async () => {
     if (savedSystemPrompt) {
         bestAssistant = savedSystemPrompt;
         if (systemPromptInput) systemPromptInput.value = savedSystemPrompt;
+    } else {
+        if (systemPromptInput) systemPromptInput.value = bestAssistant;
+    }
+
+    const savedPromptName = await storage.getSetting('promptName');
+    if (savedPromptName && promptNameInput) {
+        promptNameInput.value = savedPromptName;
+    } else if (promptNameInput) {
+        promptNameInput.value = "";
     }
 
     const savedProvider = await storage.getSetting('provider') || 'openai';
@@ -837,7 +847,7 @@ window.addEventListener('load', async () => {
     // Register Service Worker
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
-    selectLanguage();
+    await selectLanguage();
 
     // ── Post-Init Event Listeners ───────────────────────────
     // Attach listeners that use storage after it is initialized.
@@ -846,6 +856,12 @@ window.addEventListener('load', async () => {
         systemPromptInput.addEventListener('change', async () => {
             bestAssistant = systemPromptInput.value;
             await storage.setSetting('systemPrompt', bestAssistant);
+        });
+    }
+
+    if (promptNameInput) {
+        promptNameInput.addEventListener('change', async () => {
+            await storage.setSetting('promptName', promptNameInput.value);
         });
     }
 
@@ -874,10 +890,11 @@ window.addEventListener('load', async () => {
         });
     }
 
-    [themeSelect, temperatureRange, contextWindowRange].forEach(el => {
+    [themeSelect, temperatureRange, contextWindowRange, languageSelect].forEach(el => {
         if (el) el.addEventListener('change', async () => {
             await storage.setSetting(el.id, el.value);
             if (el.id === 'theme-select') setColorMode(el.value);
+            if (el.id === 'language-select') loadLanguage(el.value);
         });
     });
 
@@ -905,6 +922,7 @@ window.addEventListener('load', async () => {
             } else {
                 await storage.addPrompt({ title, content });
             }
+            await storage.setSetting('promptName', title);
             loadPrompts();
         };
     }
@@ -921,6 +939,7 @@ window.addEventListener('load', async () => {
             systemPromptInput.value = "";
             bestAssistant = "";
             await storage.setSetting('systemPrompt', "");
+            await storage.setSetting('promptName', "");
             loadPrompts();
         };
     }
@@ -1160,8 +1179,10 @@ if (settingsImportFile) settingsImportFile.onchange = (e) => {
             }
             if (data.prompts) {
                 for (const p of data.prompts) {
-                    delete p.id;
-                    await storage.addPrompt(p);
+                    if (p.title && p.title.trim() && p.content && p.content.trim()) {
+                        delete p.id;
+                        await storage.addPrompt(p);
+                    }
                 }
             }
             location.reload();
@@ -1340,8 +1361,11 @@ if (pitch) pitch.addEventListener('input', () => {
     if (pitchValue) pitchValue.textContent = parseFloat(pitch.value).toFixed(1);
 });
 
-function selectLanguage() {
-  var lang = navigator.language || navigator.userLanguage;
+async function selectLanguage() {
+  let lang = await storage.getSetting('language-select');
+  if (!lang) {
+    lang = navigator.language || navigator.userLanguage;
+  }
   if (languageSelect) languageSelect.value = lang;
   loadLanguage(lang);
 }
@@ -1381,6 +1405,9 @@ function loadLanguage(lang) {
         document.getElementById("topicsTitle").innerHTML = data.label16;
         document.getElementById("systemPromptLabel").innerHTML = data.label17;
         document.getElementById("promptNameLabel").innerHTML = data.label18;
+        if (promptNameInput && !promptNameInput.value.trim() && data.defaultPromptName) {
+            promptNameInput.value = data.defaultPromptName;
+        }
         if (document.getElementById("showMetadataLabel")) document.getElementById("showMetadataLabel").innerHTML = data.label19;
         if (data.text6) corsErrorMsg = data.text6;
         if (data.text7) overwriteConfirm = data.text7;
